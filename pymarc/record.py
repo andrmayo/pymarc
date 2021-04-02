@@ -11,7 +11,7 @@ import logging
 import re
 import unicodedata
 import warnings
-from typing import List, Optional, Dict, Tuple, Any
+from typing import List, Optional, Dict, Tuple, Any, Pattern
 
 from pymarc.constants import DIRECTORY_ENTRY_LEN, END_OF_RECORD, LEADER_LEN
 from pymarc.exceptions import (
@@ -35,7 +35,7 @@ from pymarc.leader import Leader
 from pymarc.marc8 import marc8_to_unicode
 
 
-isbn_regex = re.compile(r"([0-9\-xX]+)")
+isbn_regex: Pattern = re.compile(r"([0-9\-xX]+)")
 
 
 class Record:
