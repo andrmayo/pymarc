@@ -11,7 +11,7 @@ import logging
 import re
 import unicodedata
 import warnings
-from typing import List, Optional, Dict, Tuple, Any, Union
+from typing import List, Optional, Dict, Tuple, Any
 
 from pymarc.constants import DIRECTORY_ENTRY_LEN, END_OF_RECORD, LEADER_LEN
 from pymarc.exceptions import (
