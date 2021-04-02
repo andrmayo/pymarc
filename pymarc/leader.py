@@ -5,6 +5,8 @@
 # file.
 
 """The pymarc.leader file."""
+from typing import Union
+
 from pymarc.constants import LEADER_LEN
 from pymarc.exceptions import BadLeaderValue, RecordLeaderInvalid
 
@@ -53,7 +55,7 @@ class Leader(object):
             raise RecordLeaderInvalid
         self.leader = leader
 
-    def __getitem__(self, item: str) -> str:
+    def __getitem__(self, item: Union[str, int, slice]) -> str:
         """Get values using position, slice or properties.
 
         leader[:4] == leader.length

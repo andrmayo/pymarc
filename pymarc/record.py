@@ -11,7 +11,7 @@ import logging
 import re
 import unicodedata
 import warnings
-
+from typing import List, Optional, Dict, Tuple, Any, Union
 
 from pymarc.constants import DIRECTORY_ENTRY_LEN, END_OF_RECORD, LEADER_LEN
 from pymarc.exceptions import (
@@ -78,19 +78,19 @@ class Record:
 
     def __init__(
         self,
-        data="",
-        to_unicode=True,
-        force_utf8=False,
-        hide_utf8_warnings=False,
-        utf8_handling="strict",
-        leader=" " * LEADER_LEN,
-        file_encoding="iso8859-1",
-    ):
+        data: str = "",
+        to_unicode: bool = True,
+        force_utf8: bool = False,
+        hide_utf8_warnings: bool = False,
+        utf8_handling: str = "strict",
+        leader: str = " " * LEADER_LEN,
+        file_encoding: str = "iso8859-1",
+    ) -> None:
         """Initialize a Record."""
-        self.leader = Leader(leader[0:10] + "22" + leader[12:20] + "4500")
-        self.fields = list()
-        self.pos = 0
-        self.force_utf8 = force_utf8
+        self.leader: Any = Leader(leader[0:10] + "22" + leader[12:20] + "4500")
+        self.fields: List = list()
+        self.pos: int = 0
+        self.force_utf8: bool = force_utf8
         if len(data) > 0:
             self.decode_marc(
                 data,
@@ -103,18 +103,18 @@ class Record:
         elif force_utf8:
             self.leader = self.leader[0:9] + "a" + self.leader[10:]
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Will return a prettified version of the record in MARCMaker format.
 
         See :func:`Field.__str__() <pymarc.record.Field.__str__>` for more information.
         """
         # join is significantly faster than concatenation
-        text_list = ["=LDR  %s" % self.leader]
+        text_list: List = ["=LDR  %s" % self.leader]
         text_list.extend([str(field) for field in self.fields])
-        text = "\n".join(text_list) + "\n"
+        text: str = "\n".join(text_list) + "\n"
         return text
 
-    def __getitem__(self, tag):
+    def __getitem__(self, tag: str) -> Optional[Field]:
         """Allows a shorthand lookup by tag.
 
         .. code-block:: python
@@ -126,7 +126,7 @@ class Record:
             return fields[0]
         return None
 
-    def __contains__(self, tag):
+    def __contains__(self, tag: str) -> bool:
         """Allows a shorthand test of tag membership.
 
         .. code-block:: python
@@ -140,7 +140,7 @@ class Record:
         self.__pos = 0
         return self
 
-    def __next__(self):
+    def __next__(self) -> Field:
         if self.__pos >= len(self.fields):
             raise StopIteration
         self.__pos += 1
@@ -153,7 +153,7 @@ class Record:
         """
         self.fields.extend(fields)
 
-    def add_grouped_field(self, *fields):
+    def add_grouped_field(self, *fields) -> None:
         """Add pymarc.Field objects to a Record object and sort them "grouped".
 
         Which means, attempting to maintain a loose numeric order per the MARC standard
@@ -166,7 +166,7 @@ class Record:
                 continue
             self._sort_fields(f, "grouped")
 
-    def add_ordered_field(self, *fields):
+    def add_ordered_field(self, *fields) -> None:
         """Add pymarc.Field objects to a Record object and sort them "ordered".
 
         Which means, attempting to maintain a strict numeric order.
@@ -178,7 +178,7 @@ class Record:
                 continue
             self._sort_fields(f, "ordered")
 
-    def _sort_fields(self, field, mode):
+    def _sort_fields(self, field: Field, mode: str):
         """Sort fields by `mode`."""
         if mode == "grouped":
             tag = int(field.tag[0])
@@ -204,7 +204,7 @@ class Record:
                 self.fields.append(field)
                 break
 
-    def remove_field(self, *fields):
+    def remove_field(self, *fields) -> None:
         """Remove one or more pymarc.Field objects from a Record object."""
         for f in fields:
             try:
@@ -212,7 +212,7 @@ class Record:
             except ValueError:
                 raise FieldNotFound
 
-    def remove_fields(self, *tags):
+    def remove_fields(self, *tags) -> None:
         """Remove all the fields with the tags passed to the function.
 
         .. code-block:: python
@@ -222,7 +222,7 @@ class Record:
         """
         self.fields[:] = (field for field in self.fields if field.tag not in tags)
 
-    def get_fields(self, *args):
+    def get_fields(self, *args) -> List[Field]:
         """Return a list of all the fields in a record tags matching `args`.
 
         .. code-block:: python
@@ -247,12 +247,12 @@ class Record:
     def decode_marc(
         self,
         marc,
-        to_unicode=True,
-        force_utf8=False,
-        hide_utf8_warnings=False,
-        utf8_handling="strict",
-        encoding="iso8859-1",
-    ):
+        to_unicode: bool = True,
+        force_utf8: bool = False,
+        hide_utf8_warnings: bool = False,
+        utf8_handling: str = "strict",
+        encoding: str = "iso8859-1",
+    ) -> None:
         """Populate the object based on the `marc`` record in transmission format.
 
         The Record constructor actually uses decode_marc() behind the scenes when you
@@ -260,6 +260,7 @@ class Record:
         """
         # extract record leader
         self.leader = marc[0:LEADER_LEN].decode("ascii")
+
         if len(self.leader) != LEADER_LEN:
             raise RecordLeaderInvalid
 
@@ -282,10 +283,10 @@ class Record:
         # determine the number of fields in record
         if len(directory) % DIRECTORY_ENTRY_LEN != 0:
             raise RecordDirectoryInvalid
-        field_total = len(directory) // DIRECTORY_ENTRY_LEN
+        field_total: int = len(directory) // DIRECTORY_ENTRY_LEN
 
         # add fields to our record using directory offsets
-        field_count = 0
+        field_count: int = 0
         while field_count < field_total:
             entry_start = field_count * DIRECTORY_ENTRY_LEN
             entry_end = entry_start + DIRECTORY_ENTRY_LEN
@@ -374,7 +375,7 @@ class Record:
         if field_count == 0:
             raise NoFieldsFound
 
-    def as_marc(self):
+    def as_marc(self) -> bytes:
         """Returns the record serialized as MARC21."""
         fields = b""
         directory = b""
@@ -427,7 +428,7 @@ class Record:
     # alias for backwards compatibility
     as_marc21 = as_marc
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, str]:
         """Turn a MARC record into a dictionary, which is used for ``as_json``."""
         record = {}
         record["leader"] = str(self.leader)
@@ -436,7 +437,7 @@ class Record:
             if field.is_control_field():
                 record["fields"].append({field.tag: field.data})
             else:
-                fd = {}
+                fd: Dict[str, Any] = {}
                 fd["subfields"] = []
                 fd["ind1"] = field.indicator1
                 fd["ind2"] = field.indicator2
@@ -445,7 +446,7 @@ class Record:
                 record["fields"].append({field.tag: fd})
         return record  # as dict
 
-    def as_json(self, **kwargs):
+    def as_json(self, **kwargs) -> str:
         """Serialize a record as JSON.
 
         See:
@@ -453,33 +454,33 @@ class Record:
         """
         return json.dumps(self.as_dict(), **kwargs)
 
-    def title(self):
+    def title(self) -> Optional[str]:
         """Returns the title of the record (245 $a and $b)."""
         try:
-            title = self["245"]["a"]
+            title = self["245"]["a"]  # type: ignore
         except TypeError:
             title = None
         if title:
             try:
-                title += " " + self["245"]["b"]
+                title += " " + self["245"]["b"]  # type: ignore
             except TypeError:
                 pass
         return title
 
-    def issn_title(self):
+    def issn_title(self) -> Optional[str]:
         """Returns the key title of the record (222 $a and $b)."""
         try:
-            title = self["222"]["a"]
+            title = self["222"]["a"]  # type: ignore
         except TypeError:
             title = None
         if title:
             try:
-                title += " " + self["222"]["b"]
+                title += " " + self["222"]["b"]  # type: ignore
             except TypeError:
                 pass
         return title
 
-    def isbn(self):
+    def isbn(self) -> Optional[str]:
         """Returns the first ISBN in the record or None if one is not present.
 
         The returned ISBN will be all numeric, except for an
@@ -489,8 +490,8 @@ class Record:
         e.g. record['020']['a']
         """
         try:
-            isbn_number = self["020"]["a"]
-            match = isbn_regex.search(isbn_number)
+            isbn_number = self["020"]["a"]  # type: ignore
+            match = isbn_regex.search(isbn_number)  # type: ignore
             if match:
                 return match.group(1).replace("-", "")
         except TypeError:
@@ -498,14 +499,14 @@ class Record:
             pass
         return None
 
-    def issn(self):
+    def issn(self) -> Optional[str]:
         """Returns the ISSN number [022]['a'] in the record or None."""
         try:
-            return self["022"]["a"]
+            return self["022"]["a"]  # type: ignore
         except TypeError:
             return None
 
-    def sudoc(self):
+    def sudoc(self) -> Optional[str]:
         """Returns a SuDoc classification number.
 
         Returns a Superintendent of Documents (SuDoc) classification number
@@ -517,17 +518,17 @@ class Record:
         field = self["086"]
         return field.format_field() if field else None
 
-    def author(self):
+    def author(self) -> Optional[str]:
         """Returns the author from field 100, 110 or 111."""
         field = self["100"] or self["110"] or self["111"]
         return field.format_field() if field else None
 
-    def uniformtitle(self):
+    def uniformtitle(self) -> Optional[str]:
         """Returns the uniform title from field 130 or 240."""
         field = self["130"] or self["240"]
         return field.format_field() if field else None
 
-    def series(self):
+    def series(self) -> List[Field]:
         """Returns series fields.
 
         Note: 490 supersedes the 440 series statement which was both
@@ -535,7 +536,7 @@ class Record:
         """
         return self.get_fields("440", "490", "800", "810", "811", "830")
 
-    def subjects(self):
+    def subjects(self) -> List[Field]:
         """Returns subjects fields.
 
         Note: Fields 690-699 are considered "local" added entry fields but
@@ -548,7 +549,7 @@ class Record:
         )
         # fmt: on
 
-    def addedentries(self):
+    def addedentries(self) -> List[Field]:
         """Returns Added entries fields.
 
         Note: Fields 790-799 are considered "local" added entry fields but
@@ -561,11 +562,11 @@ class Record:
         )
         # fmt: on
 
-    def location(self):
+    def location(self) -> List[Field]:
         """Returns location field (852)."""
         return self.get_fields("852")
 
-    def notes(self):
+    def notes(self) -> List[Field]:
         """Return notes fields (all 5xx fields)."""
         # fmt: off
         return self.get_fields(
@@ -578,45 +579,45 @@ class Record:
         )
         # fmt: on
 
-    def physicaldescription(self):
+    def physicaldescription(self) -> List[Field]:
         """Return physical description fields (300)."""
         return self.get_fields("300")
 
-    def publisher(self):
+    def publisher(self) -> Optional[str]:
         """Return publisher from 260 or 264.
 
         Note: 264 field with second indicator '1' indicates publisher.
         """
         for f in self.get_fields("260", "264"):
             if self["260"]:
-                return self["260"]["b"]
+                return self["260"]["b"]  # type: ignore
             if self["264"] and f.indicator2 == "1":
-                return self["264"]["b"]
+                return self["264"]["b"]  # type: ignore
 
         return None
 
-    def pubyear(self):
+    def pubyear(self) -> Optional[str]:
         """Returns publication year from 260 or 264."""
         for f in self.get_fields("260", "264"):
             if self["260"]:
-                return self["260"]["c"]
+                return self["260"]["c"]  # type: ignore
             if self["264"] and f.indicator2 == "1":
-                return self["264"]["c"]
+                return self["264"]["c"]  # type: ignore
         return None
 
 
-def map_marc8_record(record):
+def map_marc8_record(record: Record) -> Record:
     """Map MARC-8 record."""
     record.fields = [map_marc8_field(field) for field in record.fields]
-    leader = list(record.leader)
+    leader: List[str] = list(record.leader)
     leader[9] = "a"  # see http://www.loc.gov/marc/specifications/speccharucs.html
     record.leader = "".join(leader)
     return record
 
 
-def normalize_subfield_code(subfield):
+def normalize_subfield_code(subfield) -> Tuple[Any, int]:
     """Normalize subfield code."""
-    skip_bytes = 1
+    skip_bytes: int = 1
     try:
         text_subfield = subfield.decode("utf-8")
         skip_bytes = len(text_subfield[0].encode("utf-8"))
