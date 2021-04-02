@@ -430,9 +430,8 @@ class Record:
 
     def as_dict(self) -> Dict[str, str]:
         """Turn a MARC record into a dictionary, which is used for ``as_json``."""
-        record = {}
-        record["leader"] = str(self.leader)
-        record["fields"] = []
+        record: Dict = {"leader": str(self.leader), "fields": []}
+
         for field in self:
             if field.is_control_field():
                 record["fields"].append({field.tag: field.data})
