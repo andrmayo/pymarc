@@ -1,7 +1,7 @@
 # Contributing
 
-Feel free to [report bugs](https://github.com/edsu/pymarc/issues) you have encountered
-and [suggest new features](https://github.com/edsu/pymarc/pulls).
+Feel free to [report bugs](https://gitlab.com/pymarc/pymarc/-/issues) you have encountered
+and [suggest new features](https://gitlab.com/pymarc/pymarc/-/merge_requests).
 
 For any new development, please respect the standards in place on the project (enforced
 by the CI):
