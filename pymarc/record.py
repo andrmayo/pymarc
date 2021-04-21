@@ -506,13 +506,9 @@ class Record:
             return None
 
     def sudoc(self):
-        """Returns a SuDoc classification number.
-
-        Returns a Superintendent of Documents (SuDoc) classification number
-        held in the 086 MARC tag. Classification number will be made up of
-        a variety of dashes, dots, slashes, and colons. More information
-        can be found at the following URL:
-        https://www.fdlp.gov/file-repository/gpo-cataloging/1172-gpo-classification-manual
+        """Returns a Superintendent of Documents (SuDoc) classification number.
+        Note: More information can be found at the following URL:
+        https://www.fdlp.gov/classification-guidelines/introduction-to-the-classification-guidelines
         """
         field = self["086"]
         return field.format_field() if field else None
