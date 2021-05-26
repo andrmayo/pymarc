@@ -209,113 +209,113 @@ with open('test/one.dat','rb') as fh:
   "fields": [
     {
       "001": "11778504"
-    }, 
+    },
     {
       "010": {
-        "ind1": " ", 
+        "ind1": " ",
         "subfields": [
           {
             "a": "   99043581 "
           }
-        ], 
+        ],
         "ind2": " "
       }
-    }, 
+    },
     {
       "100": {
-        "ind1": "1", 
+        "ind1": "1",
         "subfields": [
           {
             "a": "Hunt, Andrew,"
-          }, 
+          },
           {
             "d": "1964-"
           }
-        ], 
+        ],
         "ind2": " "
       }
-    }, 
+    },
     {
       "245": {
-        "ind1": "1", 
+        "ind1": "1",
         "subfields": [
           {
             "a": "The pragmatic programmer :"
-          }, 
+          },
           {
             "b": "from journeyman to master /"
-          }, 
+          },
           {
             "c": "Andrew Hunt, David Thomas."
           }
-        ], 
+        ],
         "ind2": "4"
       }
-    }, 
+    },
     {
       "260": {
-        "ind1": " ", 
+        "ind1": " ",
         "subfields": [
           {
             "a": "Reading, Mass :"
-          }, 
+          },
           {
             "b": "Addison-Wesley,"
-          }, 
+          },
           {
             "c": "2000."
           }
-        ], 
+        ],
         "ind2": " "
       }
-    }, 
+    },
     {
       "300": {
-        "ind1": " ", 
+        "ind1": " ",
         "subfields": [
           {
             "a": "xxiv, 321 p. ;"
-          }, 
+          },
           {
             "c": "24 cm."
           }
-        ], 
+        ],
         "ind2": " "
       }
-    }, 
+    },
     {
       "504": {
-        "ind1": " ", 
+        "ind1": " ",
         "subfields": [
           {
             "a": "Includes bibliographical references."
           }
-        ], 
+        ],
         "ind2": " "
       }
-    }, 
+    },
     {
       "650": {
-        "ind1": " ", 
+        "ind1": " ",
         "subfields": [
           {
             "a": "Computer programming."
           }
-        ], 
+        ],
         "ind2": "0"
       }
-    }, 
+    },
     {
       "700": {
-        "ind1": "1", 
+        "ind1": "1",
         "subfields": [
           {
             "a": "Thomas, David,"
-          }, 
+          },
           {
             "d": "1956-"
           }
-        ], 
+        ],
         "ind2": " "
       }
     }
@@ -340,7 +340,7 @@ print(records[0])
 =005  19920826084036.0
 =007  sdubumennmplu
 =008  910926s1957\\\\nyuuun\\\\\\\\\\\\\\eng\\
-=010  \\$a   91758335 
+=010  \\$a   91758335
 =028  00$a1259$bAtlantic
 =040  \\$aDLC$cDLC
 =050  00$aAtlantic 1259
@@ -366,5 +366,5 @@ scratch, please scratch it, and send merge requests on
 [GitLab](http://gitlab.com/pymarc/pymarc).
 
 If you start working with MARC you may feel like you need moral support
-in addition to technical support. The [#code4lib](irc://freenode.net/code4lib)
-channel on [Freenode](http://freenode.net) is a good place for both.
+in addition to technical support. The
+[#code4lib](ircs://irc.libera.chat/code4lib) channel on [Libera](https://libera.chat/) is a good place for both.
