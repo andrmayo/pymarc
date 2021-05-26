@@ -507,6 +507,7 @@ class Record:
 
     def sudoc(self):
         """Returns a Superintendent of Documents (SuDoc) classification number.
+
         Note: More information can be found at the following URL:
         https://www.fdlp.gov/classification-guidelines/introduction-to-the-classification-guidelines
         """
