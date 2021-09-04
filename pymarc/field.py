@@ -41,7 +41,7 @@ class Field:
         tag: str,
         indicators: Optional[List[str]] = None,
         subfields: Optional[List[str]] = None,
-        data: str = "",
+        data="",
     ):
         """Initialize a field `tag`."""
         # attempt to normalize integer tags if necessary
@@ -291,12 +291,16 @@ class RawField(Field):
     def as_marc(self, encoding: Optional[str] = None):
         """Used during conversion of a field to raw marc."""
         if encoding is not None:
-            logging.warn("Attempt to force a RawField into encoding %s", encoding)
+            logging.warning("Attempt to force a RawField into encoding %s", encoding)
         if self.is_control_field():
-            return self.data + END_OF_FIELD
+            return self.data + END_OF_FIELD.encode("ascii")
         marc = self.indicator1.encode("ascii") + self.indicator2.encode("ascii")
         for subfield in self:
-            marc += SUBFIELD_INDICATOR.encode("ascii") + subfield[0] + subfield[1]
+            marc += (
+                SUBFIELD_INDICATOR.encode("ascii")
+                + subfield[0].encode("ascii")
+                + subfield[1]
+            )
         return marc + END_OF_FIELD.encode("ascii")
 
 

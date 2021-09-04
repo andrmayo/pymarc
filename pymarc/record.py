@@ -391,7 +391,10 @@ class Record:
             encoding = "iso8859-1"
 
         for field in self.fields:
-            field_data = field.as_marc(encoding=encoding)
+            if isinstance(field, RawField):
+                field_data = field.as_marc()
+            else:
+                field_data = field.as_marc(encoding=encoding)
             fields += field_data
             if field.tag.isdigit():
                 directory += ("%03d" % int(field.tag)).encode(encoding)

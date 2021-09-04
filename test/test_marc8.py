@@ -10,7 +10,7 @@ import os
 from unittest import TestCase, makeSuite  # type: ignore
 
 
-from pymarc import Field, MARCReader, MARCWriter, Record, marc8_to_unicode
+from pymarc import Field, MARCReader, MARCWriter, RawField, Record, marc8_to_unicode
 
 
 class MARC8Test(TestCase):
@@ -19,6 +19,7 @@ class MARC8Test(TestCase):
             reader = MARCReader(fh, to_unicode=False)
             r = next(reader)
             self.assertEqual(type(r), Record)
+            self.assertIsInstance(r["240"], RawField)
             utitle = r["240"]["a"]
             self.assertEqual(type(utitle), bytes)
             self.assertEqual(utitle, b"De la solitude \xe1a la communaut\xe2e.")
@@ -73,6 +74,28 @@ class MARC8Test(TestCase):
             upublisher = r["260"]["b"]
             self.assertEqual(type(upublisher), str)
             self.assertEqual(upublisher, u"La Soci\xe9t\x1b,")
+
+    def test_marc8_read_write(self):
+        with open("test/marc8.dat", "rb") as fh:
+            reader = MARCReader(fh, to_unicode=False)
+            records = list(reader)
+            self.assertEqual(len(records), 1)
+            r = records[0]
+            self.assertIsInstance(r, Record)
+            self.assertIsInstance(r["240"], RawField)
+
+        with open("/tmp/marc8.dat", "wb") as fh:
+            fh.write(r.as_marc())
+
+        # read back and verify it is the same as before
+        with open("/tmp/marc8.dat", "rb") as fh:
+            reader = MARCReader(fh, to_unicode=False)
+            r = next(reader)
+            self.assertEqual(type(r), Record)
+            self.assertIsInstance(r["240"], RawField)
+            utitle = r["240"]["a"]
+            self.assertEqual(type(utitle), bytes)
+            self.assertEqual(utitle, b"De la solitude \xe1a la communaut\xe2e.")
 
     def test_marc8_to_unicode(self):
         marc8_file = open("test/test_marc8.txt", "rb")
