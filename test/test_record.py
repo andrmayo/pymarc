@@ -154,6 +154,14 @@ class RecordTest(unittest.TestCase):
         )
         self.assertEqual(record.issn(), "0395-2037")
 
+    def test_issnl(self):
+        record = Record()
+        self.assertEqual(record.issnl(), None)
+        record.add_field(
+            Field(tag="022", indicators=["0", ""], subfields=["l", "0395-2037"])
+        )
+        self.assertEqual(record.issnl(), "0395-2037")
+
     def test_multiple_isbn(self):
         with open("test/multi_isbn.dat", "rb") as fh:
             reader = MARCReader(fh)
