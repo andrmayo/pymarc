@@ -503,10 +503,13 @@ class Record:
 
     def issn(self) -> Optional[str]:
         """Returns the ISSN number [022]['a'] in the record or None."""
-        try:
-            return self["022"]["a"]  # type: ignore
-        except TypeError:
-            return None
+        field = self["022"]
+        return field["a"] if field else None
+
+    def issnl(self) -> Optional[str]:
+        """Returns the ISSN-L number [022]['l'] of the record or None."""
+        field = self["022"]
+        return field["l"] if field else None
 
     def sudoc(self) -> Optional[str]:
         """Returns a Superintendent of Documents (SuDoc) classification number.
