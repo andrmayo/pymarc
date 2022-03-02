@@ -13,25 +13,27 @@ class PymarcException(Exception):
     pass
 
 
-class FatalReaderEror(PymarcException):
+class FatalReaderError(PymarcException):
     """Error preventing further reading."""
 
+    pass
 
-class RecordLengthInvalid(FatalReaderEror):
+
+class RecordLengthInvalid(FatalReaderError):
     """Invalid record length."""
 
     def __str__(self):
         return "Invalid record length in first 5 bytes of record"
 
 
-class TruncatedRecord(FatalReaderEror):
+class TruncatedRecord(FatalReaderError):
     """Truncated record data."""
 
     def __str__(self):
         return "Record length in leader is greater than the length of data"
 
 
-class EndOfRecordNotFound(FatalReaderEror):
+class EndOfRecordNotFound(FatalReaderError):
     """Unable to locate end of record marker."""
 
     def __str__(self):
@@ -104,3 +106,8 @@ class BadLeaderValue(PymarcException):
     """Error when setting a leader value."""
 
     pass
+
+# This alias for FatalReaderError is here to correct a misspelling that was
+# introduced in v4.0.0. It can be removed in v5.0.0.
+
+FatalReaderEror = FatalReaderError
