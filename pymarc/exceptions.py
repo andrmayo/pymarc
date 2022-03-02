@@ -107,6 +107,7 @@ class BadLeaderValue(PymarcException):
 
     pass
 
+
 # This alias for FatalReaderError is here to correct a misspelling that was
 # introduced in v4.0.0. It can be removed in v5.0.0.
 

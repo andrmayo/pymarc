@@ -42,16 +42,14 @@ class XmlTest(unittest.TestCase):
         self.assertEqual(len(record.get_fields()), 18)
 
         # check the content of a control field
-        self.assertEqual(
-            record["008"].data, u"910926s1957    nyuuun              eng  "
-        )
+        self.assertEqual(record["008"].data, "910926s1957    nyuuun              eng  ")
 
         # check a data field with subfields
         field = record["245"]
         self.assertEqual(field.indicator1, "0")
         self.assertEqual(field.indicator2, "4")
-        self.assertEqual(field["a"], u"The Great Ray Charles")
-        self.assertEqual(field["h"], u"[sound recording].")
+        self.assertEqual(field["a"], "The Great Ray Charles")
+        self.assertEqual(field["h"], "[sound recording].")
 
     def test_xml(self):
         # read in xml to a record

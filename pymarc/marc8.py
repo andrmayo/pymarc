@@ -84,7 +84,7 @@ class MARC8ToUnicode:
         """Translate."""
         # don't choke on empty marc8_string
         if not marc8_string:
-            return u""
+            return ""
         uni_list = []
         combinings = []
         pos = 0
@@ -178,5 +178,5 @@ class MARC8ToUnicode:
                     combinings = []
 
         # what to do if combining chars left over?
-        uni_str = u"".join(uni_list)
+        uni_str = "".join(uni_list)
         return unicodedata.normalize("NFC", uni_str)

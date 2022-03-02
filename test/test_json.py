@@ -90,9 +90,9 @@ class JsonTest(unittest.TestCase):
         self.assertEqual(
             record["fields"][0]["245"],
             {
-                u"subfields": [{u"a": u"Python"}, {u"c": u"Guido"}],
-                u"ind2": u"0",
-                u"ind1": u"1",
+                "subfields": [{"a": "Python"}, {"c": "Guido"}],
+                "ind2": "0",
+                "ind1": "1",
             },
         )
 

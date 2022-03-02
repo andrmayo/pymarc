@@ -31,7 +31,7 @@ class MARC8Test(TestCase):
             self.assertEqual(type(r), Record)
             utitle = r["240"]["a"]
             self.assertEqual(type(utitle), str)
-            self.assertEqual(utitle, u"De la solitude \xe0 la communaut\xe9.")
+            self.assertEqual(utitle, "De la solitude \xe0 la communaut\xe9.")
 
     def test_marc8_reader_to_1251(self):
         with open("test/1251.dat", "rb") as fh:
@@ -40,7 +40,7 @@ class MARC8Test(TestCase):
             self.assertEqual(type(r), Record)
             utitle = r["245"]["a"]
             self.assertEqual(type(utitle), str)
-            self.assertEqual(utitle, u"Основы гидравлического расчета инженерных сетей")
+            self.assertEqual(utitle, "Основы гидравлического расчета инженерных сетей")
 
     def test_marc8_reader_to_1251_without_1251(self):
         with open("test/1251.dat", "rb") as fh:
@@ -51,7 +51,7 @@ class MARC8Test(TestCase):
                 self.assertEqual(type(r), Record)
                 utitle = r["245"]["a"]
                 self.assertEqual(type(utitle), str)
-                self.assertEqual(utitle, u"Психологический тренинг с подростками")
+                self.assertEqual(utitle, "Психологический тренинг с подростками")
             except AssertionError:
                 self.assertTrue("Was enable to decode invalid MARC")
 
@@ -73,7 +73,7 @@ class MARC8Test(TestCase):
             self.assertEqual(type(r), Record)
             upublisher = r["260"]["b"]
             self.assertEqual(type(upublisher), str)
-            self.assertEqual(upublisher, u"La Soci\xe9t\x1b,")
+            self.assertEqual(upublisher, "La Soci\xe9t\x1b,")
 
     def test_marc8_read_write(self):
         with open("test/marc8.dat", "rb") as fh:
@@ -146,11 +146,7 @@ class MARC8Test(TestCase):
             self.assertEqual(type(utitle), str)
             self.assertEqual(
                 utitle,
-                u"De la solitude a"
-                + chr(0x0300)
-                + " la communaute"
-                + chr(0x0301)
-                + ".",
+                "De la solitude a" + chr(0x0300) + " la communaute" + chr(0x0301) + ".",
             )
 
     def test_reading_utf8_without_flag(self):
@@ -183,11 +179,7 @@ class MARC8Test(TestCase):
             self.assertEqual(type(utitle), str)
             self.assertEqual(
                 utitle,
-                u"De la solitude a"
-                + chr(0x0300)
-                + " la communaute"
-                + chr(0x0301)
-                + ".",
+                "De la solitude a" + chr(0x0300) + " la communaute" + chr(0x0301) + ".",
             )
 
     def test_record_create_force_utf8(self, force_utf8=True):
@@ -196,27 +188,27 @@ class MARC8Test(TestCase):
 
     def test_subscript_2(self):
         self.assertEqual(
-            marc8_to_unicode(b"CO\x1bb2\x1bs is a gas"), u"CO\u2082 is a gas"
+            marc8_to_unicode(b"CO\x1bb2\x1bs is a gas"), "CO\u2082 is a gas"
         )
-        self.assertEqual(marc8_to_unicode(b"CO\x1bb2\x1bs"), u"CO\u2082")
+        self.assertEqual(marc8_to_unicode(b"CO\x1bb2\x1bs"), "CO\u2082")
 
     def test_eszett_euro(self):
         # MARC-8 mapping: Revised June 2004 to add the Eszett (M+C7) and the
         # Euro Sign (M+C8) to the MARC-8 set.
         self.assertEqual(
             marc8_to_unicode(b"ESZETT SYMBOL: \xc7 is U+00DF"),
-            u"ESZETT SYMBOL: \u00df is U+00DF",
+            "ESZETT SYMBOL: \u00df is U+00DF",
         )
         self.assertEqual(
             marc8_to_unicode(b"EURO SIGN: \xc8 is U+20AC"),
-            u"EURO SIGN: \u20ac is U+20AC",
+            "EURO SIGN: \u20ac is U+20AC",
         )
 
     def test_alif(self):
         # MARC-8 mapping: Revised March 2005 to change the mapping from MARC-8
         # to Unicode for the Alif (M+2E) from U+02BE to U+02BC.
         self.assertEqual(
-            marc8_to_unicode(b"ALIF: \xae is U+02BC"), u"ALIF: \u02bc is U+02BC"
+            marc8_to_unicode(b"ALIF: \xae is U+02BC"), "ALIF: \u02bc is U+02BC"
         )
 
 
