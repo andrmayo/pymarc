@@ -6,7 +6,12 @@
 
 import unittest
 
-from pymarc.exceptions import BaseAddressInvalid, FieldNotFound, RecordLeaderInvalid
+from pymarc.exceptions import (
+    BaseAddressInvalid,
+    FieldNotFound,
+    MissingLinkedFields,
+    RecordLeaderInvalid,
+)
 from pymarc.field import Field
 from pymarc.reader import MARCReader
 from pymarc.record import Record
@@ -87,6 +92,43 @@ class RecordTest(unittest.TestCase):
         record.add_field(subject2)
         found = record.get_fields("650", "651")
         self.assertEqual(len(found), 2)
+
+    def test_get_linked_fields(self):
+        record = Record()
+        t1 = Field(
+            tag="245",
+            indicators=["1", "0"],
+            subfields=["6", "880-01", "a", "Rū Harison no wārudo myūjikku nyūmon"],
+        )
+        record.add_field(t1)
+        t2 = Field(
+            tag="880",
+            indicators=["1", "0"],
+            subfields=["6", "245-01", "a", "ルー・ハリソンのワールドミュージック入門"],
+        )
+        record.add_field(t2)
+        pd1 = Field(
+            tag="260", indicators=["0", "2"], subfields=["6", "880-02", "a", "Tōkyō"]
+        )
+        record.add_field(pd1)
+        pd2 = Field(
+            tag="880", indicators=["0", "2"], subfields=["6", "260-02", "a", "東京"]
+        )
+        record.add_field(pd2)
+        self.assertEqual(record.get_linked_fields(t1), [t2])
+        self.assertEqual(record.get_linked_fields(pd1), [pd2])
+
+    def test_missing_linked_fields_exception(self):
+        record = Record()
+        t1 = Field(
+            tag="245",
+            indicators=["1", "0"],
+            subfields=["6", "880-01", "a", "Rū Harison no wārudo myūjikku nyūmon"],
+        )
+        record.add_field(t1)
+        self.assertRaisesRegex(
+            MissingLinkedFields, "^245 field", record.get_linked_fields, t1
+        )
 
     def test_bad_leader(self):
         record = Record()

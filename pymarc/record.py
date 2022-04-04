@@ -19,6 +19,7 @@ from pymarc.exceptions import (
     BaseAddressInvalid,
     BaseAddressNotFound,
     FieldNotFound,
+    MissingLinkedFields,
     NoFieldsFound,
     RecordDirectoryInvalid,
     RecordLeaderInvalid,
@@ -243,6 +244,17 @@ class Record:
             return self.fields
 
         return [f for f in self.fields if f.tag in args]
+
+    def get_linked_fields(self, field: Field) -> List[Field]:
+        """Given a field that is not an 880, retrieve a list of any linked 880 fields."""
+        num = field.linkage_occurrence_num()
+        fields = self.get_fields("880")
+        linked_fields = list(
+            filter(lambda f: f.linkage_occurrence_num() == num, fields)
+        )
+        if num is not None and not linked_fields:
+            raise MissingLinkedFields(field)
+        return linked_fields
 
     def decode_marc(
         self,

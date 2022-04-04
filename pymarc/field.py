@@ -220,6 +220,11 @@ class Field:
         """
         return self.tag < "010" and self.tag.isdigit()
 
+    def linkage_occurrence_num(self) -> Optional[str]:
+        """Return the 'occurrence number' part of subfield 6, or None if not present."""
+        ocn = self["6"] or ""
+        return ocn.split("-")[1].split("/")[0] if ocn else None
+
     def as_marc(self, encoding: str) -> bytes:
         """Used during conversion of a field to raw marc."""
         if self.is_control_field():

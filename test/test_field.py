@@ -202,6 +202,16 @@ class FieldTest(unittest.TestCase):
             b"99\x1faHuckleberry Finn: \x1fbAn American Odyssey\x1e",
         )
 
+    def test_linkage_occurrence_num(self):
+        f = Field(tag="245", indicators=["1", "0"], subfields=["6", "880-01"])
+        self.assertEqual(f.linkage_occurrence_num(), "01")
+        f = Field(tag="245", indicators=["1", "0"], subfields=["6", "530-00/(2/r"])
+        self.assertEqual(f.linkage_occurrence_num(), "00")
+        f = Field(tag="245", indicators=["1", "0"], subfields=["6", "100-42/Cyrl"])
+        self.assertEqual(f.linkage_occurrence_num(), "42")
+        f = Field(tag="245", indicators=["1", "0"], subfields=["a", "Music primer"])
+        self.assertIsNone(f.linkage_occurrence_num())
+
 
 def suite():
     test_suite = unittest.makeSuite(FieldTest, "test")
