@@ -108,6 +108,21 @@ class BadLeaderValue(PymarcException):
     pass
 
 
+class MissingLinkedFields(PymarcException):
+    """Error when a non-880 field has a subfield 6 that cannot be matched to an 880."""
+
+    def __init__(self, field):
+        """Initialize MissingLinkedFields with the `field` that lacks one or more target 880s."""
+        super().__init__(field)
+        self.field = field
+
+    def __str__(self):
+        return (
+            self.field.tag
+            + " field includes a subfield 6 but no linked fields could be found."
+        )
+
+
 # This alias for FatalReaderError is here to correct a misspelling that was
 # introduced in v4.0.0. It can be removed in v5.0.0.
 
