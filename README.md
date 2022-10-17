@@ -22,6 +22,8 @@ Below are some common examples of how you might want to use pymarc. If
 you run across an example that you think should be here please send a
 pull request.
 
+You can read pymarc documentation [here](https://pymarc.readthedocs.io/en/latest/).
+
 ### Installation
 
 You'll probably just want to use pip to install pymarc:
