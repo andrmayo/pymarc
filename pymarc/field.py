@@ -190,13 +190,11 @@ class Field:
         If no subfield is found with the specified code None is returned.
         """
         try:
-            index = self.subfields.index(code)
-            if index % 2 == 0:
-                value = self.subfields.pop(index + 1)
-                self.subfields.pop(index)
-                return value
-            else:
-                return None
+            codes = self.subfields[0::2]
+            index = codes.index(code) * 2
+            value = self.subfields.pop(index + 1)
+            self.subfields.pop(index)
+            return value
         except ValueError:
             return None
 

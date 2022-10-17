@@ -171,10 +171,10 @@ class FieldTest(unittest.TestCase):
         self.assertEqual(self.field["a"], "changed")
 
     def test_delete_subfield_only_by_code(self):
-        self.field.delete_subfield("An American Odyssey")
-        self.assertEqual(self.field["b"], "An American Odyssey")
-        self.field.delete_subfield("b")
-        self.assertTrue(self.field["b"] is None)
+        field = Field(tag="960", indicators=[" ", " "], subfields=["a", "b", "b", "x"])
+        value = field.delete_subfield("b")
+        self.assertEqual(value, "x")
+        self.assertEqual(field.subfields, ["a", "b"])
 
     def test_subfield_dict(self):
         field = Field(
