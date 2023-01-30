@@ -8,7 +8,7 @@
 
 from setuptools import setup
 
-version = "4.2.1"
+version = "4.2.2"
 
 classifiers = """
 Intended Audience :: Education
@@ -39,5 +39,5 @@ setup(
     long_description_content_type="text/markdown",
     classifiers=list(filter(None, classifiers.split("\n"))),
     test_suite="test",
-    python_requires=">=3.6.*",
+    python_requires=">=3.6",
 )
