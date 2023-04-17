@@ -50,9 +50,9 @@ class Field:
         """Initialize a field `tag`."""
         # attempt to normalize integer tags if necessary
         try:
-            self.tag = "%03i" % int(tag)
+            self.tag = f"{int(tag):03}"
         except ValueError:
-            self.tag = "%03s" % tag
+            self.tag = f"{tag}"
 
         if subfields and isinstance(subfields[0], str):
             raise ValueError(
@@ -123,17 +123,22 @@ class Field:
         [3] http://www.loc.gov/marc/mnemonics.html
         """
         if self.is_control_field():
-            text = "=%s  %s" % (self.tag, self.data.replace(" ", "\\"))
+            _data: str = self.data.replace(" ", "\\")
+            return f"={self.tag}  {_data}"
         else:
-            text = "=%s  " % self.tag
+            _ind = []
+            _subf = []
+
             for indicator in self.indicators:
                 if indicator in (" ", "\\"):
-                    text += "\\"
+                    _ind.append("\\")
                 else:
-                    text += f"{indicator}"
+                    _ind.append(f"{indicator}")
+
             for subfield in self.subfields:
-                text += f"${subfield.code}{subfield.value}"
-        return text
+                _subf.append(f"${subfield.code}{subfield.value}")
+
+            return f"={self.tag}  {''.join(_ind)}{''.join(_subf)}"
 
     def get(self, code: str, default=None):
         """A dict-like get method with a default value.
@@ -189,9 +194,9 @@ class Field:
         num_subfields: int = [x.code for x in self.subfields].count(code)
 
         if num_subfields > 1:
-            raise KeyError("more than one code '%s'" % code)
+            raise KeyError(f"more than one code '{code}'")
         elif num_subfields == 0:
-            raise KeyError("no code '%s'" % code)
+            raise KeyError(f"no code '{code}'")
 
         for idx, subf in enumerate(self.subfields):
             if subf.code == code:
@@ -291,14 +296,17 @@ class Field:
     def as_marc(self, encoding: str) -> bytes:
         """Used during conversion of a field to raw marc."""
         if self.is_control_field():
-            return (self.data + END_OF_FIELD).encode(encoding)
+            return f"{self.data}{END_OF_FIELD}".encode(encoding)
 
-        marc: str = self.indicator1 + self.indicator2
-
+        _subf = []
         for subfield in self.subfields:
-            marc += SUBFIELD_INDICATOR + subfield.code + subfield.value
+            _subf.append(f"{SUBFIELD_INDICATOR}{subfield.code}{subfield.value}")
 
-        return (marc + END_OF_FIELD).encode(encoding)
+        return (
+            f"{self.indicator1}{self.indicator2}{''.join(_subf)}{END_OF_FIELD}".encode(
+                encoding
+            )
+        )
 
     # alias for backwards compatibility
     as_marc21 = as_marc

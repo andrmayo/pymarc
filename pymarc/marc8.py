@@ -163,8 +163,7 @@ class MARC8ToUnicode:
                     pass
                 if not self.quiet:
                     sys.stderr.write(
-                        "Unable to parse character 0x%x in g0=%s g1=%s\n"
-                        % (code_point, self.g0, self.g1)
+                        f"Unable to parse character 0x{code_point:x} in g0={self.g0} g1={self.g1}\n"
                     )
                 uni = ord(" ")
                 cflag = False
