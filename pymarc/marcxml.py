@@ -88,8 +88,7 @@ class XmlHandler(ContentHandler):
             self._record.add_field(self._field)
             self._field = None
         elif element == "subfield":
-            self._field.subfields.append(self._subfield_code)
-            self._field.subfields.append(text)
+            self._field.add_subfield(self._subfield_code, text)
             self._subfield_code = None
 
         self._text = []
@@ -185,7 +184,7 @@ def record_to_xml_node(record, quiet=False, namespace=False):
             data_field.set("tag", field.tag)
             for subfield in field:
                 data_subfield = ET.SubElement(data_field, "subfield")
-                data_subfield.set("code", subfield[0])
-                data_subfield.text = translate(subfield[1])
+                data_subfield.set("code", subfield.code)
+                data_subfield.text = translate(subfield.value)
 
     return root

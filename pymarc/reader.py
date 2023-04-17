@@ -13,7 +13,7 @@ from io import IOBase, BytesIO, StringIO
 from typing import Callable, BinaryIO, IO, Iterator, Union
 
 from pymarc.constants import END_OF_RECORD
-from pymarc import Record, Field
+from pymarc import Record, Field, Subfield
 from pymarc import exceptions
 
 
@@ -142,7 +142,7 @@ class MARCReader(Reader):
     def __next__(self):
         """Read and parse the next record."""
         if self._current_exception:
-            if isinstance(self._current_exception, exceptions.FatalReaderEror):
+            if isinstance(self._current_exception, exceptions.FatalReaderError):
                 raise StopIteration
 
         self._current_chunk = None
@@ -154,13 +154,13 @@ class MARCReader(Reader):
 
         if len(first5) < 5:
             self._current_exception = exceptions.TruncatedRecord()
-            return
+            return None
 
         try:
             length = int(first5)
         except ValueError:
             self._current_exception = exceptions.RecordLengthInvalid()
-            return
+            return None
 
         chunk = self.file_handle.read(length - 5)
         chunk = first5 + chunk
@@ -168,11 +168,11 @@ class MARCReader(Reader):
 
         if len(self._current_chunk) < length:
             self._current_exception = exceptions.TruncatedRecord()
-            return
+            return None
 
         if self._current_chunk[-1] != ord(END_OF_RECORD):
             self._current_exception = exceptions.EndOfRecordNotFound()
-            return
+            return None
 
         try:
             return Record(
@@ -250,7 +250,7 @@ class JSONReader(Reader):
                 subfields: list = []
                 for sub in v["subfields"]:
                     for code, value in sub.items():
-                        subfields.extend((code, value))
+                        subfields.append(Subfield(code=code, value=value))
                 fld = Field(
                     tag=k, subfields=subfields, indicators=[v["ind1"], v["ind2"]]
                 )

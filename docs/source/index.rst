@@ -11,7 +11,7 @@ Release v\ |version|
 
 Pymarc is a Python 3 library for working with bibliographic data encoded in MARC21.
 
-Starting with version 4.0.0 it requires python 3.6 and up. It provides an API
+Starting with version 5.0.0 it requires python 3.7 and up. It provides an API
 for reading, writing and modifying MARC records. It was mostly designed to be
 an emergency eject seat, for getting your data assets out of MARC and into some
 kind of saner representation. However over the years it has been used to create
@@ -98,21 +98,20 @@ the next record.
 
 A pymarc.Record object has a few handy methods like title for
 getting at bits of a bibliographic record, others include: author,
-isbn, subjects, location, notes,
-physicaldescription, publisher, pubyear. But really, to work
-with MARC data you need to understand the numeric field tags and
-subfield codes that are used to designate various bits of information.
-There is a lot more hiding in a MARC record than these methods provide
-access to. For example the title method extracts the information
-from the 245 field, subfields a and b. You can access
-245a like so:
+isbn, subjects, location, notes, physical description, publisher,
+pubyear. But really, to work with MARC data you need to understand the
+numeric field tags and subfield codes that are used to designate
+various bits of information. There is a lot more hiding in a MARC
+record than these methods provide access to. For example the title
+method extracts the information from the 245 field, subfields a and b.
+You can access `245a` like so:
 
 .. code-block:: python
 
     print(record['245']['a'])
 
 Some fields like subjects can repeat. In cases like that you will want
-to use get_fields to get all of them as pymarc.Field objects,
+to use `get_fields` to get all of them as `pymarc.Field` objects,
 which you can then interact with further:
 
 .. code-block:: python
@@ -120,10 +119,26 @@ which you can then interact with further:
     for f in record.get_fields('650'):
         print(f)
 
-If you are new to MARC fields Understanding
-MARC (http://www.loc.gov/marc/umb/) is a pretty good primer, and the
-MARC 21 Formats (http://www.loc.gov/marc/marcdocz.html) page at the
+If you are new to MARC fields, "Understanding MARC"
+(http://www.loc.gov/marc/umb/) is a pretty good primer, and the
+"MARC 21 Formats" (http://www.loc.gov/marc/marcdocz.html) page at the
 Library of Congress is a good reference once you understand the basics.
+
+**Note:** New in v5.0.0, `Subfield` is used to create subfields.
+Prior to v5, subfields were constructed as a list of strings, e.g.,
+`[code, value, code, value]`. This has been changed to organize the
+subfields into a list of tuples, e.g., `[(code, value), (code, value)]`.
+The `Subfield` is implemented as a `NamedTuple` so that the tuples
+can be constructed as `Subfield(code=code, value=value)`. See the
+ code below for an example of how this is used.
+
+The old style of creating subfields is no longer supported. Passing
+a list of strings to the `subfields` parameter for the `Field` constructor
+will raise a `ValueError`.
+
+For convenience, a class method is provided to convert the legacy list of
+strings into a list of `Subfield`s. An example of how to do this is
+given below.
 
 Writing
 ~~~~~~~
@@ -132,7 +147,7 @@ Here's an example of creating a record and writing it out to a file.
 
 .. code-block:: python
 
-    from pymarc import Record, Field
+    from pymarc import Record, Field, Subfield
 
     record = Record()
     record.add_field(
@@ -140,9 +155,9 @@ Here's an example of creating a record and writing it out to a file.
             tag = '245',
             indicators = ['0','1'],
             subfields = [
-                'a', 'The pragmatic programmer : ',
-                'b', 'from journeyman to master /',
-                'c', 'Andrew Hunt, David Thomas.'
+                Subfield(code='a', value='The pragmatic programmer : '),
+                Subfield(code='b', value='from journeyman to master /'),
+                Subfield(code='c', value='Andrew Hunt, David Thomas.')
             ]))
     with open('file.dat', 'wb') as out:
         out.write(record.as_marc())
@@ -160,7 +175,7 @@ it out again:
     with open('test/marc.dat', 'rb') as fh:
        reader = MARCReader(fh)
        record = next(reader)
-       record['245']['a'] = 'The Zombie Programmer'
+       record['245']['a'] = 'The Zombie Programmer : '
     with open('file.dat', 'wb') as out:
        out.write(record.as_marc())
 
