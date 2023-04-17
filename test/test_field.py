@@ -3,19 +3,21 @@
 # https://opensource.org/licenses/BSD-2-Clause. pymarc may be copied, modified,
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
-
 import unittest
 import sys
 
-from pymarc.field import Field
+from pymarc.field import Field, Subfield
 
 
 class FieldTest(unittest.TestCase):
     def setUp(self):
         self.field = Field(
             tag="245",
-            indicators=[0, 1],
-            subfields=["a", "Huckleberry Finn: ", "b", "An American Odyssey"],
+            indicators=["0", "1"],
+            subfields=[
+                Subfield(code="a", value="Huckleberry Finn: "),
+                Subfield(code="b", value="An American Odyssey"),
+            ],
         )
 
         self.controlfield = Field(
@@ -25,8 +27,40 @@ class FieldTest(unittest.TestCase):
         self.subjectfield = Field(
             tag="650",
             indicators=[" ", "0"],
-            subfields=["a", "Python (Computer program language)", "v", "Poetry."],
+            subfields=[
+                Subfield(code="a", value="Python (Computer program language)"),
+                Subfield(code="v", value="Poetry."),
+            ],
         )
+
+    def test_implicit_coded_subfield_constructor(self):
+        field = Field(
+            tag="245",
+            indicators=["0", "1"],
+            subfields=[
+                Subfield("a", "Huckleberry Finn: "),
+                Subfield("b", "An American Odyssey"),
+            ],
+        )
+        self.assertEqual(field["a"], "Huckleberry Finn: ")
+        self.assertEqual(field["b"], "An American Odyssey")
+
+    def test_explicit_coded_subfield(self):
+        field = Field(
+            tag="245",
+            indicators=["0", "1"],
+            subfields=[
+                Subfield(code="a", value="Huckleberry Finn: "),
+                Subfield(code="b", value="An American Odyssey"),
+            ],
+        )
+        self.assertEqual(field["a"], "Huckleberry Finn: ")
+        self.assertEqual(field["b"], "An American Odyssey")
+
+    def test_old_style_raises_valueerror(self):
+        old_style_subfields = ["a", "Huckleberry Finn: ", "b", "An American Odyssey"]
+        with self.assertRaises(ValueError):
+            _ = Field(tag="245", indicators=["0", "1"], subfields=old_style_subfields)
 
     def test_string(self):
         self.assertEqual(
@@ -44,11 +78,21 @@ class FieldTest(unittest.TestCase):
 
     def test_subfields_created(self):
         subfields = self.field.subfields
-        self.assertEqual(len(subfields), 4)
+        self.assertEqual(len(subfields), 2)
 
     def test_subfield_short(self):
         self.assertEqual(self.field["a"], "Huckleberry Finn: ")
-        self.assertEqual(self.field["z"], None)
+        with self.assertRaises(KeyError):
+            _ = self.field["z"]
+
+    def test_subfield_get_none(self):
+        self.assertIsNone(self.field.get("z"))
+
+    def test_subfield_setter(self):
+        self.field.subfields = [
+            Subfield(code="a", value="The Adventures of Tom Sawyer")
+        ]
+        self.assertEqual(self.field["a"], "The Adventures of Tom Sawyer")
 
     def test_subfields(self):
         self.assertEqual(self.field.get_subfields("a"), ["Huckleberry Finn: "])
@@ -76,8 +120,8 @@ class FieldTest(unittest.TestCase):
     def test_iterator(self):
         string = ""
         for subfield in self.field:
-            string += subfield[0]
-            string += subfield[1]
+            string += subfield.code
+            string += subfield.value
         self.assertEqual(string, "aHuckleberry Finn: bAn American Odyssey")
 
     def test_value(self):
@@ -88,10 +132,18 @@ class FieldTest(unittest.TestCase):
 
     def test_non_integer_tag(self):
         # make sure this doesn't throw an exception
-        Field(tag="3 0", indicators=[0, 1], subfields=["a", "foo"])
+        Field(
+            tag="3 0",
+            indicators=["0", "1"],
+            subfields=[Subfield(code="a", value="foo")],
+        )
 
     def test_add_subfield(self):
-        field = Field(tag="245", indicators=[0, 1], subfields=["a", "foo"])
+        field = Field(
+            tag="245",
+            indicators=["0", "1"],
+            subfields=[Subfield(code="a", value="foo")],
+        )
         field.add_subfield("a", "bar")
         self.assertEqual(field.__str__(), "=245  01$afoo$abar")
         field.add_subfield("b", "baz", 0)
@@ -104,13 +156,29 @@ class FieldTest(unittest.TestCase):
     def test_delete_subfield(self):
         field = Field(
             tag="200",
-            indicators=[0, 1],
-            subfields=["a", "My Title", "a", "Kinda Bogus Anyhow"],
+            indicators=["0", "1"],
+            subfields=[
+                Subfield(code="a", value="My Title"),
+                Subfield(code="a", value="Kinda Bogus Anyhow"),
+            ],
         )
         self.assertEqual(field.delete_subfield("z"), None)
         self.assertEqual(field.delete_subfield("a"), "My Title")
         self.assertEqual(field.delete_subfield("a"), "Kinda Bogus Anyhow")
         self.assertTrue(len(field.subfields) == 0)
+
+    def test_subfield_delete_contains(self):
+        field = Field(
+            tag="200",
+            indicators=["0", "1"],
+            subfields=[
+                Subfield(code="a", value="My Title"),
+                Subfield(code="z", value="Kinda Bogus Anyhow"),
+            ],
+        )
+        self.assertTrue("z" in field)
+        field.delete_subfield("z")
+        self.assertFalse("z" in field)
 
     def test_is_subject_field(self):
         self.assertEqual(self.subjectfield.is_subject_field(), True)
@@ -132,7 +200,11 @@ class FieldTest(unittest.TestCase):
         self.assertEqual(f.tag, "042")
 
     def test_alphatag(self):
-        f = Field(tag="CAT", indicators=[0, 1], subfields=["a", "foo"])
+        f = Field(
+            tag="CAT",
+            indicators=["0", "1"],
+            subfields=[Subfield(code="a", value="foo")],
+        )
         self.assertEqual(f.tag, "CAT")
         self.assertEqual(f["a"], "foo")
         self.assertEqual(f.is_control_field(), False)
@@ -171,16 +243,26 @@ class FieldTest(unittest.TestCase):
         self.assertEqual(self.field["a"], "changed")
 
     def test_delete_subfield_only_by_code(self):
-        field = Field(tag="960", indicators=[" ", " "], subfields=["a", "b", "b", "x"])
+        field = Field(
+            tag="960",
+            indicators=[" ", " "],
+            subfields=[
+                Subfield(code="a", value="b"),
+                Subfield(code="b", value="x"),
+            ],
+        )
         value = field.delete_subfield("b")
         self.assertEqual(value, "x")
-        self.assertEqual(field.subfields, ["a", "b"])
+        self.assertEqual(field.subfields, [Subfield(code="a", value="b")])
 
     def test_subfield_dict(self):
         field = Field(
             tag="680",
             indicators=[" ", " "],
-            subfields=["a", "Repeated", "a", "Subfield"],
+            subfields=[
+                Subfield(code="a", value="Repeated"),
+                Subfield(code="a", value="Subfield"),
+            ],
         )
         dictionary = field.subfields_as_dict()
         self.assertTrue(isinstance(dictionary, dict))
@@ -203,14 +285,58 @@ class FieldTest(unittest.TestCase):
         )
 
     def test_linkage_occurrence_num(self):
-        f = Field(tag="245", indicators=["1", "0"], subfields=["6", "880-01"])
+        f = Field(
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[Subfield(code="6", value="880-01")],
+        )
         self.assertEqual(f.linkage_occurrence_num(), "01")
-        f = Field(tag="245", indicators=["1", "0"], subfields=["6", "530-00/(2/r"])
+        f = Field(
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[Subfield(code="6", value="530-00/(2/r")],
+        )
         self.assertEqual(f.linkage_occurrence_num(), "00")
-        f = Field(tag="245", indicators=["1", "0"], subfields=["6", "100-42/Cyrl"])
+        f = Field(
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[Subfield(code="6", value="100-42/Cyrl")],
+        )
         self.assertEqual(f.linkage_occurrence_num(), "42")
-        f = Field(tag="245", indicators=["1", "0"], subfields=["a", "Music primer"])
+        f = Field(
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[Subfield(code="a", value="Music primer")],
+        )
         self.assertIsNone(f.linkage_occurrence_num())
+
+    def test_coded_subfield(self):
+        coded_val = self.field.subfields[0]
+        self.assertIsInstance(coded_val, Subfield)
+        # NB: Python typecheckers don't generally like named tuples yet.
+        self.assertEqual(coded_val.code, "a")  # type: ignore
+        self.assertEqual(coded_val.value, "Huckleberry Finn: ")  # type: ignore
+
+    def test_convert_legacy_subfields(self):
+        """Tests conversion between the legacy subfield format and the new Subfield format."""
+        legacy_fields: list[str] = [
+            "a",
+            "The pragmatic programmer : ",
+            "b",
+            "from journeyman to master /",
+            "c",
+            "Andrew Hunt, David Thomas",
+        ]
+
+        coded_fields: list[Subfield] = Field.convert_legacy_subfields(legacy_fields)
+        self.assertEqual(
+            coded_fields,
+            [
+                Subfield(code="a", value="The pragmatic programmer : "),
+                Subfield(code="b", value="from journeyman to master /"),
+                Subfield(code="c", value="Andrew Hunt, David Thomas"),
+            ],
+        )
 
 
 def suite():

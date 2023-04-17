@@ -10,7 +10,15 @@ import os
 from unittest import TestCase, makeSuite  # type: ignore
 
 
-from pymarc import Field, MARCReader, MARCWriter, RawField, Record, marc8_to_unicode
+from pymarc import (
+    Field,
+    MARCReader,
+    MARCWriter,
+    RawField,
+    Record,
+    marc8_to_unicode,
+    Subfield,
+)
 
 
 class MARC8Test(TestCase):
@@ -116,7 +124,9 @@ class MARC8Test(TestCase):
 
     def test_writing_unicode(self):
         record = Record()
-        record.add_field(Field(245, ["1", "0"], ["a", chr(0x1234)]))
+        record.add_field(
+            Field("245", ["1", "0"], [Subfield(code="a", value=chr(0x1234))])
+        )
         record.leader = "         a              "
         writer = MARCWriter(open("test/foo", "wb"))
         writer.write(record)

@@ -110,22 +110,49 @@ Formats](http://www.loc.gov/marc/marcdocz.html) page at the Library of Congress 
 
 ### Writing
 
+{% note %}
+**Note:** New in v5.0.0, `Subfield` is used to create subfields. Prior to v5, subfields were constructed as a list
+of strings, e.g., `[code, value, code, value]`. This has been changed to organize the subfields into a list of 
+tuples, e.g., `[(code, value), (code, value)]`. The `Subfield` is implemented as a `NamedTuple` so that the tuples 
+can be constructed as `Subfield(code=code, value=value)`. See the code below for an example of how this is used.
+
+The old style of creating subfields is no longer supported. Attempting to pass a list of strings to the `subfields`
+parameter for the `Field` constructor will raise a `ValueError`.
+
+For convenience, a class method is provided to convert the legacy list of strings into a list of `Subfield`s. An
+example of how to do this is given below.
+{% endnote %}
+
 Here's an example of creating a record and writing it out to a file.
 
 ```python
-from pymarc import Record, Field
+from pymarc import Record, Field, Subfield
+
 record = Record()
 record.add_field(
     Field(
-        tag = '245',
-        indicators = ['0','1'],
-        subfields = [
-            'a', 'The pragmatic programmer : ',
-            'b', 'from journeyman to master /',
-            'c', 'Andrew Hunt, David Thomas.'
+        tag='245',
+        indicators=['0', '1'],
+        subfields=[
+            Subfield(code='a', value='The pragmatic programmer : '),
+            Subfield(code='b', value='from journeyman to master /'),
+            Subfield(code='c', value='Andrew Hunt, David Thomas.')
         ]))
 with open('file.dat', 'wb') as out:
     out.write(record.as_marc())
+```
+
+To convert from the old string list to a list of `Subfield`s, the `.convert_legacy_subfields` class method
+is provided on the `Field` class.
+
+```python
+from pymarc import Field, Subfield
+
+legacy_fields: list[str] = ['a', 'The pragmatic programmer : ',
+                            'b', 'from journeyman to master /',
+                            'c', 'Andrew Hunt, David Thomas']
+
+coded_fields: list[Subfield] = Field.convert_legacy_subfields(legacy_fields)
 ```
 
 ### Updating
@@ -138,7 +165,7 @@ from pymarc import MARCReader
 with open('test/marc.dat', 'rb') as fh:
     reader = MARCReader(fh)
     record = next(reader)
-    record['245']['a'] = 'The Zombie Programmer'
+    record['245']['a'] = 'The Zombie Programmer : '
 with open('file.dat', 'wb') as out:
     out.write(record.as_marc())
 ```
@@ -181,6 +208,8 @@ Also, if you prefer you can pass in a file like object in addition to the path
 to both *map_xml* and *parse_xml_to_array*:
 
 ```python
+from pymarc import parse_xml_to_array
+
 records = parse_xml_to_array(open('test/batch.xml'))
 ```
 

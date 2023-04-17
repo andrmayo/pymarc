@@ -4,14 +4,16 @@
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
 
-"""The pymarc.field file."""
+"""The pymarc field file."""
 
 import logging
 from collections import defaultdict
-from typing import List, Optional, Tuple, DefaultDict
+from typing import List, Optional, DefaultDict, NamedTuple, Iterator, Dict
 
 from pymarc.constants import SUBFIELD_INDICATOR, END_OF_FIELD
 from pymarc.marc8 import marc8_to_unicode
+
+Subfield = NamedTuple("Subfield", [("code", str), ("value", str)])
 
 
 class Field:
@@ -23,9 +25,9 @@ class Field:
             tag = '245',
             indicators = ['0','1'],
             subfields = [
-                'a', 'The pragmatic programmer : ',
-                'b', 'from journeyman to master /',
-                'c', 'Andrew Hunt, David Thomas.',
+                Subfield(code='a', value='The pragmatic programmer : '),
+                Subfield(code='b', value='from journeyman to master /'),
+                Subfield(code='c', value='Andrew Hunt, David Thomas.'),
             ])
 
     If you want to create a control field, don't pass in the indicators
@@ -36,12 +38,14 @@ class Field:
         field = Field(tag='001', data='fol05731351')
     """
 
+    __slots__ = ("tag", "data", "indicators", "subfields", "__pos")
+
     def __init__(
         self,
         tag: str,
         indicators: Optional[List[str]] = None,
-        subfields: Optional[List[str]] = None,
-        data="",
+        subfields: Optional[List[Subfield]] = None,
+        data: str = "",
     ):
         """Initialize a field `tag`."""
         # attempt to normalize integer tags if necessary
@@ -50,12 +54,55 @@ class Field:
         except ValueError:
             self.tag = "%03s" % tag
 
-        # assume controlfields are numeric only; replicates ruby-marc behavior
+        if subfields and isinstance(subfields[0], str):
+            raise ValueError(
+                """The subfield input no longer accepts strings, and should use Subfield.
+                   Please consult the documentation for details.
+                """
+            )
+
+        # assume control fields are numeric only; replicates ruby-marc behavior
         if self.tag < "010" and self.tag.isdigit():
             self.data = data
         else:
+            self.subfields: List[Subfield] = subfields or []
             self.indicators = [str(x) for x in (indicators or [])]
-            self.subfields = subfields or []
+
+    @classmethod
+    def convert_legacy_subfields(cls, subfields: List[str]) -> List[Subfield]:
+        """
+        Converts older-style subfield lists into Subfield lists.
+
+        Converts the old-style list of strings into a list of Subfields.
+        As a class method this does not actually set any fields; it simply
+        takes a list of strings and returns a list of Subfields.
+
+        .. code-block:: python
+
+            legacy_fields: list[str] = ['a', 'The pragmatic programmer : ',
+                                        'b', 'from journeyman to master /',
+                                        'c', 'Andrew Hunt, David Thomas']
+
+            coded_fields: list[Subfield] = Field.convert_legacy_subfields(legacy_fields)
+
+            myfield = Field(
+                tag="245",
+                indicators = ['0','1'],
+                subfields=coded_fields
+            )
+
+        :param subfields: A list of [code, value, code, value]
+        :return: A list of Subfield named tuples
+        """
+        # Make an iterator out of the incoming subfields.
+        subf_it: Iterator[str] = iter(subfields)
+        # This creates a tuple based on the next value of the iterator. In this case,
+        # the subfield code will be the first element, and then the subfield value
+        # will be the second.
+        subf = zip(subf_it, subf_it)
+        # Create a coded subfield tuple of each (code, value) item in the incoming
+        # subfields.
+        return [Subfield._make(t) for t in subf]
 
     def __iter__(self):
         self.__pos = 0
@@ -78,29 +125,46 @@ class Field:
         if self.is_control_field():
             text = "=%s  %s" % (self.tag, self.data.replace(" ", "\\"))
         else:
-            text = "=%s  " % (self.tag)
+            text = "=%s  " % self.tag
             for indicator in self.indicators:
                 if indicator in (" ", "\\"):
                     text += "\\"
                 else:
-                    text += "%s" % indicator
-            for subfield in self:
-                text += "$%s%s" % subfield
+                    text += f"{indicator}"
+            for subfield in self.subfields:
+                text += f"${subfield.code}{subfield.value}"
         return text
 
-    def __getitem__(self, subfield) -> Optional[str]:
+    def get(self, code: str, default=None):
+        """A dict-like get method with a default value.
+
+        Implements a non-raising getter for a subfield code that will
+        return the value of the first subfield whose code is `key`.
+        """
+        if code not in self:
+            return default
+        return self[code]
+
+    def __getitem__(self, code: str) -> str:
         """Retrieve the first subfield with a given subfield code in a field.
+
+        Raises KeyError if `code` is not in the Field.
 
         .. code-block:: python
 
             field['a']
-
-        Handy for quick lookups.
         """
-        subfields = self.get_subfields(subfield)
-        return subfields[0] if subfields else None
+        if code not in self:
+            raise KeyError
 
-    def __contains__(self, subfield: Optional[str]) -> bool:
+        for subf in self.subfields:
+            if subf.code == code:
+                return subf.value
+        # This should not occur, but just incase we've looped through
+        # and couldn't find the code, default to raising KeyError.
+        raise KeyError
+
+    def __contains__(self, subfield: str) -> bool:
         """Allows a shorthand test of field membership.
 
         .. code-block:: python
@@ -108,7 +172,10 @@ class Field:
             'a' in field
 
         """
-        return bool(self.get_subfields(subfield))
+        for s in self.subfields:
+            if s.code == subfield:
+                return True
+        return False
 
     def __setitem__(self, code: str, value: str) -> None:
         """Set the values of the subfield code in a field.
@@ -119,32 +186,35 @@ class Field:
 
         Raises KeyError if there is more than one subfield code.
         """
-        subfields = self.get_subfields(code)
-        if len(subfields) > 1:
-            raise KeyError("more than one code '%s'" % code)
-        elif len(subfields) == 0:
-            raise KeyError("no code '%s'" % code)
-        num_code = len(self.subfields) // 2
-        while num_code >= 0:
-            if self.subfields[(num_code * 2) - 2] == code:
-                self.subfields[(num_code * 2) - 1] = value
-                break
-            num_code -= 1
+        num_subfields: int = [x.code for x in self.subfields].count(code)
 
-    def __next__(self) -> Tuple[str, str]:
+        if num_subfields > 1:
+            raise KeyError("more than one code '%s'" % code)
+        elif num_subfields == 0:
+            raise KeyError("no code '%s'" % code)
+
+        for idx, subf in enumerate(self.subfields):
+            if subf.code == code:
+                new_val = Subfield(code=subf.code, value=value)
+                self.subfields[idx] = new_val
+                break
+
+    def __next__(self) -> Subfield:
         if not hasattr(self, "subfields"):
             raise StopIteration
-        while self.__pos < len(self.subfields):
-            subfield = (self.subfields[self.__pos], self.subfields[self.__pos + 1])
-            self.__pos += 2
-            return subfield
-        raise StopIteration
+
+        try:
+            subfield = self.subfields[self.__pos]
+            self.__pos += 1
+            return subfield  # type: ignore
+        except IndexError:
+            raise StopIteration
 
     def value(self) -> str:
         """Returns the field as a string w/ tag, indicators, and subfield indicators."""
         if self.is_control_field():
             return self.data
-        return " ".join(subfield[1].strip() for subfield in self)
+        return " ".join(subfield.value.strip() for subfield in self.subfields)
 
     def get_subfields(self, *codes) -> List[str]:
         """Get subfields matching `codes`.
@@ -158,27 +228,25 @@ class Field:
             print(field.get_subfields('a'))
             print(field.get_subfields('a', 'b', 'z'))
         """
-        return [subfield[1] for subfield in self if subfield[0] in codes]
+        return [subfield.value for subfield in self.subfields if subfield.code in codes]
 
     def add_subfield(self, code: str, value: str, pos=None) -> None:
         """Adds a subfield code/value to the end of a field or at a position (pos).
+
+        If pos is not supplied or out of range, the subfield will be added at the end.
 
         .. code-block:: python
 
             field.add_subfield('u', 'http://www.loc.gov')
             field.add_subfield('u', 'http://www.loc.gov', 0)
-
-        If pos is not supplied or out of range, the subfield will be added at the end.
         """
-        append = pos is None or (pos + 1) * 2 > len(self.subfields)
+        append: bool = pos is None or pos > len(self.subfields)
+        insertable: Subfield = Subfield(code=code, value=value)
 
         if append:
-            self.subfields.append(code)
-            self.subfields.append(value)
+            self.subfields.append(insertable)
         else:
-            i = pos * 2
-            self.subfields.insert(i, code)
-            self.subfields.insert(i + 1, value)
+            self.subfields.insert(pos, insertable)
 
     def delete_subfield(self, code: str) -> Optional[str]:
         """Deletes the first subfield with the specified 'code' and returns its value.
@@ -189,27 +257,24 @@ class Field:
 
         If no subfield is found with the specified code None is returned.
         """
-        try:
-            codes = self.subfields[0::2]
-            index = codes.index(code) * 2
-            value = self.subfields.pop(index + 1)
-            self.subfields.pop(index)
-            return value
-        except ValueError:
+        if code not in self:
             return None
 
-    def subfields_as_dict(self) -> DefaultDict[str, list]:
+        index: int = [s.code for s in self.subfields].index(code)
+        whole_field: Subfield = self.subfields.pop(index)
+
+        return whole_field.value
+
+    def subfields_as_dict(self) -> Dict[str, List]:
         """Returns the subfields as a dictionary.
 
         The dictionary is a mapping of subfield codes and values. Since
         subfield codes can repeat the values are a list.
         """
-        keys = self.subfields[0::2]
-        vals = self.subfields[1::2]
-        subs: DefaultDict[str, list] = defaultdict(list)
-        for k, v in zip(keys, vals):
-            subs[k].append(v)
-        return subs
+        subs: DefaultDict[str, List] = defaultdict(list)
+        for field in self.subfields:
+            subs[field.code].append(field.value)
+        return dict(subs)
 
     def is_control_field(self) -> bool:
         """Returns true or false if the field is considered a control field.
@@ -220,16 +285,18 @@ class Field:
 
     def linkage_occurrence_num(self) -> Optional[str]:
         """Return the 'occurrence number' part of subfield 6, or None if not present."""
-        ocn = self["6"] or ""
+        ocn = self.get("6", "")
         return ocn.split("-")[1].split("/")[0] if ocn else None
 
     def as_marc(self, encoding: str) -> bytes:
         """Used during conversion of a field to raw marc."""
         if self.is_control_field():
             return (self.data + END_OF_FIELD).encode(encoding)
-        marc = self.indicator1 + self.indicator2
-        for subfield in self:
-            marc += SUBFIELD_INDICATOR + subfield[0] + subfield[1]
+
+        marc: str = self.indicator1 + self.indicator2
+
+        for subfield in self.subfields:
+            marc += SUBFIELD_INDICATOR + subfield.code + subfield.value
 
         return (marc + END_OF_FIELD).encode(encoding)
 
@@ -244,18 +311,21 @@ class Field:
         """
         if self.is_control_field():
             return self.data
-        fielddata = ""
-        for subfield in self:
-            if subfield[0] == "6":
+
+        field_data: str = ""
+
+        for subfield in self.subfields:
+            if subfield.code == "6":
                 continue
+
             if not self.is_subject_field():
-                fielddata += " %s" % subfield[1]
+                field_data += f" {subfield.value}"
             else:
-                if subfield[0] not in ("v", "x", "y", "z"):
-                    fielddata += " %s" % subfield[1]
+                if subfield.code not in ("v", "x", "y", "z"):
+                    field_data += f" {subfield.value}"
                 else:
-                    fielddata += " -- %s" % subfield[1]
-        return fielddata.strip()
+                    field_data += f" -- {subfield.value}"
+        return field_data.strip()
 
     def is_subject_field(self) -> bool:
         """Returns True or False if the field is considered a subject field.
@@ -286,23 +356,23 @@ class Field:
 
 
 class RawField(Field):
-    """MARC field that keeps data in raw, undecoded byte strings.
+    """MARC field that keeps data in raw, un-decoded byte strings.
 
     Should only be used when input records are wrongly encoded.
     """
 
     def as_marc(self, encoding: Optional[str] = None):
-        """Used during conversion of a field to raw marc."""
+        """Used during conversion of a field to raw MARC."""
         if encoding is not None:
             logging.warning("Attempt to force a RawField into encoding %s", encoding)
         if self.is_control_field():
-            return self.data + END_OF_FIELD.encode("ascii")
-        marc = self.indicator1.encode("ascii") + self.indicator2.encode("ascii")
-        for subfield in self:
+            return self.data + END_OF_FIELD.encode("ascii")  # type: ignore
+        marc: bytes = self.indicator1.encode("ascii") + self.indicator2.encode("ascii")
+        for subfield in self.subfields:
             marc += (
                 SUBFIELD_INDICATOR.encode("ascii")
-                + subfield[0].encode("ascii")
-                + subfield[1]
+                + subfield.code.encode("ascii")
+                + subfield.value  # type: ignore
             )
         return marc + END_OF_FIELD.encode("ascii")
 
@@ -312,5 +382,7 @@ def map_marc8_field(f: Field) -> Field:
     if f.is_control_field():
         f.data = marc8_to_unicode(f.data)
     else:
-        f.subfields = [marc8_to_unicode(subfield) for subfield in f.subfields]
+        to_marc8: List[str] = [marc8_to_unicode(subfield) for subfield in f.subfields]
+        converted = Field.convert_legacy_subfields(to_marc8)
+        f.subfields = converted  # type: ignore
     return f

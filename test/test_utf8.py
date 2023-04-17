@@ -43,9 +43,10 @@ class MARCUnicodeTest(unittest.TestCase):
 
     def test_combining_diacritic(self):
         """Issue 74: raises UnicodeEncodeError on Python 2."""
-        reader = pymarc.MARCReader(open("test/diacritic.dat", "rb"))
-        record = next(reader)
-        str(record)
+        with open("test/diacritic.dat", "rb") as fh:
+            reader = pymarc.MARCReader(fh)
+            record = next(reader)
+            str(record)
 
 
 def suite():
