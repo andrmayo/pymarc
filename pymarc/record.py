@@ -460,12 +460,7 @@ class Record:
 
         # update the leader with the current record length and base address
         # the lengths are fixed width and zero padded
-        strleader = "%05d%s%05d%s" % (
-            record_length,
-            self.leader[5:12],
-            base_address,
-            self.leader[17:],
-        )
+        strleader = f"{record_length:0>5}{self.leader[5:12]}{base_address:0>5}{self.leader[17:]}"
         leader = strleader.encode(encoding)
 
         return leader + directory + fields
