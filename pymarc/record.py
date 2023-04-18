@@ -76,7 +76,7 @@ class Record:
     MARC records in a file.
     """
 
-    __slots__ = ("leader", "fields", "pos", "force_utf8", "__pos")
+    __slots__ = ("leader", "fields", "pos", "force_utf8", "to_unicode", "__pos")
 
     def __init__(
         self,
@@ -93,6 +93,7 @@ class Record:
         self.fields: List = list()
         self.pos: int = 0
         self.force_utf8: bool = force_utf8
+        self.to_unicode: bool = to_unicode
         if len(data) > 0:
             self.decode_marc(
                 data,
@@ -422,6 +423,12 @@ class Record:
         fields = b""
         directory = b""
         offset = 0
+
+        if self.to_unicode:
+            if isinstance(self.leader, Leader):
+                self.leader.coding_scheme = "a"
+            else:
+                self.leader = self.leader[0:9] + "a" + self.leader[10:]
 
         # build the directory
         # each element of the directory includes the tag, the byte length of
