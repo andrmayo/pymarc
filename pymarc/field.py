@@ -390,5 +390,8 @@ def map_marc8_field(f: Field) -> Field:
     if f.is_control_field():
         f.data = marc8_to_unicode(f.data)
     else:
-        f.subfields: List[Subfield] = [Subfield(subfield.code, marc8_to_unicode(subfield.value)) for subfield in f.subfields]
+        f.subfields: List[Subfield] = [
+            Subfield(subfield.code, marc8_to_unicode(subfield.value))
+            for subfield in f.subfields
+        ]
     return f
