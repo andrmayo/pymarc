@@ -110,18 +110,16 @@ Formats](http://www.loc.gov/marc/marcdocz.html) page at the Library of Congress 
 
 ### Writing
 
-{% note %}
-**Note:** New in v5.0.0, `Subfield` is used to create subfields. Prior to v5, subfields were constructed as a list
-of strings, e.g., `[code, value, code, value]`. This has been changed to organize the subfields into a list of 
-tuples, e.g., `[(code, value), (code, value)]`. The `Subfield` is implemented as a `NamedTuple` so that the tuples 
-can be constructed as `Subfield(code=code, value=value)`. See the code below for an example of how this is used.
-
-The old style of creating subfields is no longer supported. Attempting to pass a list of strings to the `subfields`
-parameter for the `Field` constructor will raise a `ValueError`.
-
-For convenience, a class method is provided to convert the legacy list of strings into a list of `Subfield`s. An
-example of how to do this is given below.
-{% endnote %}
+*Note: As of v5.0.0 `Subfield` is used to create subfields. Prior to v5,
+subfields were constructed and accessed as a list of strings, e.g., `[code,
+value, code, value]`. In v5.0.0 this has been changed to organize the subfields
+into a list of tuples, e.g., `[(code, value), (code, value)]`. The `Subfield`
+is implemented as a `NamedTuple` so that the tuples can be constructed as
+`Subfield(code=code, value=value)`. The old style of creating subfields is no
+longer supported. Attempting to pass a list of strings to the `subfields`
+parameter for the `Field` constructor will raise a `ValueError`. For
+convenience the `Field.convert_legacy_subfields` can be used to convert a
+legacy list of strings into a list of `Subfield`s.*
 
 Here's an example of creating a record and writing it out to a file.
 
