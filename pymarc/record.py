@@ -53,9 +53,9 @@ class Record:
             tag = '245',
             indicators = ['0','1'],
             subfields = [
-                'a', 'The pragmatic programmer : ',
-                'b', 'from journeyman to master /',
-                'c', 'Andrew Hunt, David Thomas.',
+                Subfield(code='a', value='The pragmatic programmer : '),
+                Subfield(code='b', value='from journeyman to master /'),
+                Subfield(code='c', value='Andrew Hunt, David Thomas.'),
             ])
 
         record.add_field(field)
@@ -495,6 +495,7 @@ class Record:
         """
         return json.dumps(self.as_dict(), **kwargs)
 
+    @property
     def title(self) -> Optional[str]:
         """Returns the title of the record (245 $a and $b)."""
         title_field: Optional[Field] = self.get("245")
@@ -508,6 +509,7 @@ class Record:
                 title += f" {subtitle}"
         return title
 
+    @property
     def issn_title(self) -> Optional[str]:
         """Returns the key title of the record (222 $a and $b)."""
         title_field: Optional[Field] = self.get("222")
@@ -521,6 +523,7 @@ class Record:
                 title += f" {subtitle}"
         return title
 
+    @property
     def isbn(self) -> Optional[str]:
         """Returns the first ISBN in the record or None if one is not present.
 
@@ -545,16 +548,19 @@ class Record:
 
         return None
 
+    @property
     def issn(self) -> Optional[str]:
         """Returns the ISSN number [022]['a'] in the record or None."""
         field = self.get("022")
         return field.get("a") if (field and "a" in field) else None
 
+    @property
     def issnl(self) -> Optional[str]:
         """Returns the ISSN-L number [022]['l'] of the record or None."""
         field = self.get("022")
         return field["l"] if (field and "l" in field) else None
 
+    @property
     def sudoc(self) -> Optional[str]:
         """Returns a Superintendent of Documents (SuDoc) classification number.
 
@@ -564,16 +570,19 @@ class Record:
         field = self.get("086")
         return field.format_field() if field else None
 
+    @property
     def author(self) -> Optional[str]:
         """Returns the author from field 100, 110 or 111."""
         field = self.get("100") or self.get("110") or self.get("111")
         return field.format_field() if field else None
 
+    @property
     def uniformtitle(self) -> Optional[str]:
         """Returns the uniform title from field 130 or 240."""
         field = self.get("130") or self.get("240")
         return field.format_field() if field else None
 
+    @property
     def series(self) -> List[Field]:
         """Returns series fields.
 
@@ -582,6 +591,7 @@ class Record:
         """
         return self.get_fields("440", "490", "800", "810", "811", "830")
 
+    @property
     def subjects(self) -> List[Field]:
         """Returns subjects fields.
 
@@ -595,6 +605,7 @@ class Record:
         )
         # fmt: on
 
+    @property
     def addedentries(self) -> List[Field]:
         """Returns Added entries fields.
 
@@ -608,10 +619,12 @@ class Record:
         )
         # fmt: on
 
+    @property
     def location(self) -> List[Field]:
         """Returns location field (852)."""
         return self.get_fields("852")
 
+    @property
     def notes(self) -> List[Field]:
         """Return notes fields (all 5xx fields)."""
         # fmt: off
@@ -625,10 +638,12 @@ class Record:
         )
         # fmt: on
 
+    @property
     def physicaldescription(self) -> List[Field]:
         """Return physical description fields (300)."""
         return self.get_fields("300")
 
+    @property
     def publisher(self) -> Optional[str]:
         """Return publisher from 260 or 264.
 
@@ -642,6 +657,7 @@ class Record:
 
         return None
 
+    @property
     def pubyear(self) -> Optional[str]:
         """Returns publication year from 260 or 264."""
         for f in self.get_fields("260", "264"):
