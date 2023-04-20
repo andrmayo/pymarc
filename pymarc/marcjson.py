@@ -9,7 +9,7 @@
 from pymarc import Field, Record, JSONReader
 
 
-class JsonHandler:
+class JSONHandler:
     """Handle JSON."""
 
     def __init__(self):
@@ -63,5 +63,5 @@ class JsonHandler:
 def parse_json_to_array(json_file):
     """JSON to elements."""
     json_reader = JSONReader(json_file)
-    handler = JsonHandler()
+    handler = JSONHandler()
     return handler.elements(json_reader.records)
