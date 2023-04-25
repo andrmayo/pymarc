@@ -55,7 +55,7 @@ from pymarc import MARCReader
 with open('test/marc.dat', 'rb') as fh:
     reader = MARCReader(fh)
     for record in reader:
-        print(record.title())
+        print(record.title)
 ```
 ```
 The pragmatic programmer : from journeyman to master /
@@ -82,7 +82,7 @@ Introduction to algorithms /
 ANSI Common Lisp /
 ```
 
-A `pymarc.Record` object has a few handy methods like `title` for getting at
+A `pymarc.Record` object has a few handy properties like `title` for getting at
 bits of a bibliographic record, others include: `author`, `isbn`, `subjects`,
 `location`, `notes`, `physicaldescription`, `publisher`, `pubyear`, `issn`,
 `issn_title`. But really, to work with MARC data you need to understand the
