@@ -87,9 +87,10 @@ bits of a bibliographic record, others include: `author`, `isbn`, `subjects`,
 `location`, `notes`, `physicaldescription`, `publisher`, `pubyear`, `issn`,
 `issn_title`. But really, to work with MARC data you need to understand the
 numeric field tags and subfield codes that are used to designate various bits
-of information. There is a lot more hiding in a MARC record than these methods
-provide access to. For example the `title` method extracts the information from
- the `245` field, subfields `a` and `b`. You can access `245a` like so:
+of information. There is a lot more data hidden in a MARC record than these
+helper properties provide access to. For example the `title` property works by
+extracting the information from the `245` field, subfields `a` and `b` behind
+the scenes. You can access `245a` like so:
 
 ```python
 print(record['245']['a'])
