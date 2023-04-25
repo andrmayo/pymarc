@@ -658,7 +658,7 @@ class RecordTest(unittest.TestCase):
                 subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
-        record.leader = "00067     2200037   4500"
+        record.leader = "00067    a2200037   4500"
         leader_not_touched = record.leader
         record.as_marc()
         leader_touched = record.leader
@@ -691,7 +691,7 @@ class RecordTest(unittest.TestCase):
         )
         transmission_format = record.as_marc()
         transmission_format_leader = transmission_format[0:24]
-        self.assertEqual(transmission_format_leader, b"00067     2200037   4500")
+        self.assertEqual(transmission_format_leader, b"00067    a2200037   4500")
 
     def test_init_with_no_leader_but_with_force_utf8(self):
         record = Record(force_utf8=True)
@@ -717,7 +717,7 @@ class RecordTest(unittest.TestCase):
         )
         transmission_format = record.as_marc()
         transmission_format_leader = transmission_format[0:24]
-        self.assertEqual(transmission_format_leader, b"00067fghij2200037rst4500")
+        self.assertEqual(transmission_format_leader, b"00067fghia2200037rst4500")
 
     def test_init_with_leader_and_force_utf8(self):
         record = Record(leader="abcdefghijklmnopqrstuvwx", force_utf8=True)
@@ -731,6 +731,27 @@ class RecordTest(unittest.TestCase):
         transmission_format = record.as_marc()
         transmission_format_leader = transmission_format[0:24]
         self.assertEqual(transmission_format_leader, b"00067fghia2200037rst4500")
+
+    def test_as_marc_to_unicode_conversion(self):
+        with open("test/marc8-to-unicode.dat", "rb") as fh:
+            modified_record_bytes = fh.read()
+
+        with open("test/marc8.dat", "rb") as fh:
+            original_record_bytes = fh.read()
+            reader = MARCReader(original_record_bytes, to_unicode=True)
+            record = next(reader)
+            record_bytes = record.as_marc()
+            self.assertEqual(record_bytes[9], ord("a"))
+            self.assertEqual(modified_record_bytes, record_bytes)
+
+    def test_map_marc8_record_against_unicode_as_marc(self):
+        from pymarc.record import map_marc8_record
+
+        with open("test/marc8.dat", "rb") as fh:
+            reader = MARCReader(fh, to_unicode=True)
+            record = next(reader)
+            map_marc8_data = map_marc8_record(record)
+            self.assertEqual(map_marc8_data.as_marc(), record.as_marc())
 
 
 def suite():
