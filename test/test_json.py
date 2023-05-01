@@ -15,8 +15,11 @@ class JsonReaderTest(unittest.TestCase):
         with open("test/test.json") as fh:
             self.in_json = json.load(fh, strict=False)
 
-        with open("test/test.json") as fh:
-            self.reader = pymarc.JSONReader(fh)
+        self._js_fh = open("test/test.json")
+        self.reader = pymarc.JSONReader(self._js_fh)
+
+    def tearDown(self) -> None:
+        self._js_fh.close()
 
     def testRoundtrip(self):
         """Test from and to json.
@@ -43,12 +46,21 @@ class JsonReaderTest(unittest.TestCase):
 
 class JsonTest(unittest.TestCase):
     def setUp(self):
-        self.reader = pymarc.MARCReader(open("test/test.dat", "rb"))
+        self._test_fh = open("test/test.dat", "rb")
+        self.reader = pymarc.MARCReader(self._test_fh)
         self._record = pymarc.Record()
         field = pymarc.Field(
-            tag="245", indicators=["1", "0"], subfields=["a", "Python", "c", "Guido"]
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[
+                pymarc.Subfield(code="a", value="Python"),
+                pymarc.Subfield(code="c", value="Guido"),
+            ],
         )
         self._record.add_field(field)
+
+    def tearDown(self) -> None:
+        self._test_fh.close()
 
     def test_as_dict_single(self):
         _expected = {
@@ -103,11 +115,21 @@ class JsonTest(unittest.TestCase):
 
 class JsonParse(unittest.TestCase):
     def setUp(self):
-        self.reader_dat = pymarc.MARCReader(open("test/one.dat", "rb"))
-        self.parse_json = pymarc.parse_json_to_array(open("test/one.json"))
+        self._one_dat_fh = open("test/one.dat", "rb")
+        self._one_js_fh = open("test/one.json", "r")
+        self._batch_xml_fh = open("test/batch.xml", "r")
+        self._batch_js_fh = open("test/batch.json", "r")
 
-        self.batch_xml = pymarc.parse_xml_to_array(open("test/batch.xml"))
-        self.batch_json = pymarc.parse_json_to_array(open("test/batch.json"))
+        self.reader_dat = pymarc.MARCReader(self._one_dat_fh)
+        self.parse_json = pymarc.parse_json_to_array(self._one_js_fh)
+        self.batch_xml = pymarc.parse_xml_to_array(self._batch_xml_fh)
+        self.batch_json = pymarc.parse_json_to_array(self._batch_js_fh)
+
+    def tearDown(self) -> None:
+        self._one_dat_fh.close()
+        self._one_js_fh.close()
+        self._batch_js_fh.close()
+        self._batch_xml_fh.close()
 
     def testRoundtrip(self):
         recs = list(self.reader_dat)
@@ -115,7 +137,9 @@ class JsonParse(unittest.TestCase):
             len(self.parse_json), len(recs), "Incorrect number of records found"
         )
         for from_dat, from_json in zip(recs, self.parse_json):
-            self.assertEqual(from_dat.as_marc(), from_json.as_marc(), "Icorrect Record")
+            self.assertEqual(
+                from_dat.as_marc(), from_json.as_marc(), "Incorrect Record"
+            )
 
     def testParseJsonXml(self):
         self.assertEqual(
@@ -124,7 +148,9 @@ class JsonParse(unittest.TestCase):
             "Incorrect number of parse records found",
         )
         for from_dat, from_json in zip(self.batch_json, self.batch_xml):
-            self.assertEqual(from_dat.as_marc(), from_json.as_marc(), "Icorrect Record")
+            self.assertEqual(
+                from_dat.as_marc(), from_json.as_marc(), "Incorrect Record"
+            )
 
 
 def suite():

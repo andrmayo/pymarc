@@ -3,7 +3,6 @@
 # https://opensource.org/licenses/BSD-2-Clause. pymarc may be copied, modified,
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
-
 import unittest
 
 from pymarc.exceptions import (
@@ -12,7 +11,7 @@ from pymarc.exceptions import (
     MissingLinkedFields,
     RecordLeaderInvalid,
 )
-from pymarc.field import Field
+from pymarc.field import Field, Subfield
 from pymarc.reader import MARCReader
 from pymarc.record import Record
 
@@ -21,7 +20,12 @@ class RecordTest(unittest.TestCase):
     def test_add_field(self):
         record = Record()
         field = Field(
-            tag="245", indicators=["1", "0"], subfields=["a", "Python", "c", "Guido"]
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[
+                Subfield(code="a", value="Python"),
+                Subfield(code="c", value="Guido"),
+            ],
         )
         record.add_field(field)
         self.assertTrue(field in record.fields, msg="found field")
@@ -29,14 +33,19 @@ class RecordTest(unittest.TestCase):
     def test_remove_field(self):
         record = Record()
         field = Field(
-            tag="245", indicators=["1", "0"], subfields=["a", "Python", "c", "Guido"]
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[
+                Subfield(code="a", value="Python"),
+                Subfield(code="c", value="Guido"),
+            ],
         )
         record.add_field(field)
         self.assertEqual(record["245"]["a"], "Python")
 
         # try removing a field that exists
         record.remove_field(field)
-        self.assertEqual(record["245"], None)
+        self.assertEqual(record.get("245"), None)
 
         # try removing a field that doesn't exist
         field = Field("001", data="abcd1234")
@@ -45,16 +54,26 @@ class RecordTest(unittest.TestCase):
     def test_quick_access(self):
         record = Record()
         title = Field(
-            tag="245", indicators=["1", "0"], subfields=["a", "Python", "c", "Guido"]
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[
+                Subfield(code="a", value="Python"),
+                Subfield(code="c", value="Guido"),
+            ],
         )
         record.add_field(title)
         self.assertEqual(record["245"], title, "short access")
-        self.assertEqual(record["999"], None, "short access with no field")
+        self.assertEqual(record.get("999"), None, "short access with no field")
 
     def test_membership(self):
         record = Record()
         title = Field(
-            tag="245", indicators=["1", "0"], subfields=["a", "Python", "c", "Guido"]
+            tag="245",
+            indicators=["1", "0"],
+            subfields=[
+                Subfield(code="a", value="Python"),
+                Subfield(code="c", value="Guido"),
+            ],
         )
         record.add_field(title)
         self.assertTrue("245" in record)
@@ -67,11 +86,15 @@ class RecordTest(unittest.TestCase):
     def test_find(self):
         record = Record()
         subject1 = Field(
-            tag="650", indicators=["", "0"], subfields=["a", "Programming Language"]
+            tag="650",
+            indicators=["", "0"],
+            subfields=[Subfield(code="a", value="Programming Language")],
         )
         record.add_field(subject1)
         subject2 = Field(
-            tag="650", indicators=["", "0"], subfields=["a", "Object Oriented"]
+            tag="650",
+            indicators=["", "0"],
+            subfields=[Subfield(code="a", value="Object Oriented")],
         )
         record.add_field(subject2)
         found = record.get_fields("650")
@@ -83,11 +106,15 @@ class RecordTest(unittest.TestCase):
     def test_multi_find(self):
         record = Record()
         subject1 = Field(
-            tag="650", indicators=["", "0"], subfields=["a", "Programming Language"]
+            tag="650",
+            indicators=["", "0"],
+            subfields=[Subfield(code="a", value="Programming Language")],
         )
         record.add_field(subject1)
         subject2 = Field(
-            tag="651", indicators=["", "0"], subfields=["a", "Object Oriented"]
+            tag="651",
+            indicators=["", "0"],
+            subfields=[Subfield(code="a", value="Object Oriented")],
         )
         record.add_field(subject2)
         found = record.get_fields("650", "651")
@@ -98,21 +125,37 @@ class RecordTest(unittest.TestCase):
         t1 = Field(
             tag="245",
             indicators=["1", "0"],
-            subfields=["6", "880-01", "a", "Rū Harison no wārudo myūjikku nyūmon"],
+            subfields=[
+                Subfield(code="6", value="880-01"),
+                Subfield(code="a", value="Rū Harison no wārudo myūjikku nyūmon"),
+            ],
         )
         record.add_field(t1)
         t2 = Field(
             tag="880",
             indicators=["1", "0"],
-            subfields=["6", "245-01", "a", "ルー・ハリソンのワールドミュージック入門"],
+            subfields=[
+                Subfield(code="6", value="245-01"),
+                Subfield(code="a", value="ルー・ハリソンのワールドミュージック入門"),
+            ],
         )
         record.add_field(t2)
         pd1 = Field(
-            tag="260", indicators=["0", "2"], subfields=["6", "880-02", "a", "Tōkyō"]
+            tag="260",
+            indicators=["0", "2"],
+            subfields=[
+                Subfield(code="6", value="880-02"),
+                Subfield(code="a", value="Tōkyō"),
+            ],
         )
         record.add_field(pd1)
         pd2 = Field(
-            tag="880", indicators=["0", "2"], subfields=["6", "260-02", "a", "東京"]
+            tag="880",
+            indicators=["0", "2"],
+            subfields=[
+                Subfield(code="6", value="260-02"),
+                Subfield(code="a", value="東京"),
+            ],
         )
         record.add_field(pd2)
         self.assertEqual(record.get_linked_fields(t1), [t2])
@@ -123,7 +166,10 @@ class RecordTest(unittest.TestCase):
         t1 = Field(
             tag="245",
             indicators=["1", "0"],
-            subfields=["6", "880-01", "a", "Rū Harison no wārudo myūjikku nyūmon"],
+            subfields=[
+                Subfield(code="6", value="880-01"),
+                Subfield(code="a", value="Rū Harison no wārudo myūjikku nyūmon"),
+            ],
         )
         record.add_field(t1)
         self.assertRaisesRegex(
@@ -142,133 +188,230 @@ class RecordTest(unittest.TestCase):
 
     def test_title(self):
         record = Record()
-        self.assertEqual(record.title(), None)
-        record.add_field(Field("245", [0, 1], subfields=["a", "Foo :", "b", "bar"]))
-        self.assertEqual(record.title(), "Foo : bar")
+        self.assertEqual(record.title, None)
+        record.add_field(
+            Field(
+                "245",
+                ["0", "1"],
+                subfields=[
+                    Subfield(code="a", value="Foo :"),
+                    Subfield(code="b", value="bar"),
+                ],
+            )
+        )
+        self.assertEqual(record.title, "Foo : bar")
 
         record = Record()
-        record.add_field(Field("245", [0, 1], subfields=["a", "Farghin"]))
-        self.assertEqual(record.title(), "Farghin")
+        record.add_field(
+            Field("245", ["0", "1"], subfields=[Subfield(code="a", value="Farghin")])
+        )
+        self.assertEqual(record.title, "Farghin")
 
     def test_issn_title(self):
         record = Record()
-        self.assertEqual(record.issn_title(), None)
-        record.add_field(Field("222", ["", ""], subfields=["a", "Foo :", "b", "bar"]))
-        self.assertEqual(record.issn_title(), "Foo : bar")
+        self.assertEqual(record.issn_title, None)
+        record.add_field(
+            Field(
+                "222",
+                ["", ""],
+                subfields=[
+                    Subfield(code="a", value="Foo :"),
+                    Subfield(code="b", value="bar"),
+                ],
+            )
+        )
+        self.assertEqual(record.issn_title, "Foo : bar")
 
         record = Record()
-        record.add_field(Field("222", ["", ""], subfields=["a", "Farghin"]))
-        self.assertEqual(record.issn_title(), "Farghin")
+        record.add_field(
+            Field("222", ["", ""], subfields=[Subfield(code="a", value="Farghin")])
+        )
+        self.assertEqual(record.issn_title, "Farghin")
 
         record = Record()
-        record.add_field(Field("222", ["", ""], subfields=["b", "bar"]))
-        self.assertEqual(record.issn_title(), None)
+        record.add_field(
+            Field("222", ["", ""], subfields=[Subfield(code="b", value="bar")])
+        )
+        self.assertEqual(record.issn_title, None)
 
     def test_isbn(self):
         record = Record()
-        self.assertEqual(record.isbn(), None)
-        record.add_field(Field("020", [0, 1], subfields=["a", "9781416566113"]))
-        self.assertEqual(record.isbn(), "9781416566113")
-
-        record = Record()
-        record.add_field(Field("020", [0, 1], subfields=["a", "978-1416566113"]))
-        self.assertEqual(record.isbn(), "9781416566113")
-
-        record = Record()
-        record.add_field(Field("020", [0, 1], subfields=["a", "ISBN-978-1416566113"]))
-        self.assertEqual(record.isbn(), "9781416566113")
+        self.assertEqual(record.isbn, None)
+        record.add_field(
+            Field(
+                "020",
+                ["0", "1"],
+                subfields=[Subfield(code="a", value="9781416566113")],
+            )
+        )
+        self.assertEqual(record.isbn, "9781416566113")
 
         record = Record()
         record.add_field(
-            Field("020", [" ", " "], subfields=["a", "0456789012 (reel 1)"])
+            Field(
+                "020",
+                ["0", "1"],
+                subfields=[Subfield(code="a", value="978-1416566113")],
+            )
         )
-        self.assertEqual(record.isbn(), "0456789012")
+        self.assertEqual(record.isbn, "9781416566113")
 
         record = Record()
-        record.add_field(Field("020", [" ", " "], subfields=["a", "006073132X"]))
-        self.assertEqual(record.isbn(), "006073132X")
+        record.add_field(
+            Field(
+                "020",
+                ["0", "1"],
+                subfields=[Subfield(code="a", value="ISBN-978-1416566113")],
+            )
+        )
+        self.assertEqual(record.isbn, "9781416566113")
+
+        record = Record()
+        record.add_field(
+            Field(
+                "020",
+                [" ", " "],
+                subfields=[Subfield(code="a", value="0456789012 (reel 1)")],
+            )
+        )
+        self.assertEqual(record.isbn, "0456789012")
+
+        record = Record()
+        record.add_field(
+            Field(
+                "020",
+                [" ", " "],
+                subfields=[Subfield(code="a", value="006073132X")],
+            )
+        )
+        self.assertEqual(record.isbn, "006073132X")
 
     def test_issn(self):
         record = Record()
-        self.assertEqual(record.issn(), None)
+        self.assertEqual(record.issn, None)
         record.add_field(
-            Field(tag="022", indicators=["0", ""], subfields=["a", "0395-2037"])
+            Field(
+                tag="022",
+                indicators=["0", ""],
+                subfields=[Subfield(code="a", value="0395-2037")],
+            )
         )
-        self.assertEqual(record.issn(), "0395-2037")
+        self.assertEqual(record.issn, "0395-2037")
 
     def test_issnl(self):
         record = Record()
-        self.assertEqual(record.issnl(), None)
+        self.assertEqual(record.issnl, None)
         record.add_field(
-            Field(tag="022", indicators=["0", ""], subfields=["l", "0395-2037"])
+            Field(
+                tag="022",
+                indicators=["0", ""],
+                subfields=[Subfield(code="l", value="0395-2037")],
+            )
         )
-        self.assertEqual(record.issnl(), "0395-2037")
+        self.assertEqual(record.issnl, "0395-2037")
 
     def test_multiple_isbn(self):
         with open("test/multi_isbn.dat", "rb") as fh:
             reader = MARCReader(fh)
             record = next(reader)
-            self.assertEqual(record.isbn(), "0914378287")
+            self.assertEqual(record.isbn, "0914378287")
 
     def test_author(self):
         record = Record()
-        self.assertEqual(record.author(), None)
+        self.assertEqual(record.author, None)
         record.add_field(
-            Field("100", [1, 0], subfields=["a", "Bletch, Foobie,", "d", "1979-1981."])
+            Field(
+                "100",
+                ["1", "0"],
+                subfields=[
+                    Subfield(code="a", value="Bletch, Foobie,"),
+                    Subfield(code="d", value="1979-1981."),
+                ],
+            )
         )
-        self.assertEqual(record.author(), "Bletch, Foobie, 1979-1981.")
+        self.assertEqual(record.author, "Bletch, Foobie, 1979-1981.")
 
         record = Record()
         record.add_field(
-            Field("130", [0, " "], subfields=["a", "Bible.", "l", "Python."])
+            Field(
+                "130",
+                ["0", " "],
+                subfields=[
+                    Subfield(code="a", value="Bible."),
+                    Subfield(code="l", value="Python."),
+                ],
+            )
         )
-        self.assertEqual(record.author(), None)
+        self.assertEqual(record.author, None)
 
     def test_uniformtitle(self):
         record = Record()
-        self.assertEqual(record.uniformtitle(), None)
+        self.assertEqual(record.uniformtitle, None)
         record.add_field(
             Field(
                 "130",
-                [0, " "],
-                subfields=["a", "Tosefta.", "l", "English.", "f", "1977."],
+                ["0", " "],
+                subfields=[
+                    Subfield(code="a", value="Tosefta."),
+                    Subfield(code="l", value="English."),
+                    Subfield(code="f", value="1977."),
+                ],
             )
         )
-        self.assertEqual(record.uniformtitle(), "Tosefta. English. 1977.")
+        self.assertEqual(record.uniformtitle, "Tosefta. English. 1977.")
 
         record = Record()
         record.add_field(
             Field(
-                "240", [1, 4], subfields=["a", "The Pickwick papers.", "l", "French."]
+                "240",
+                ["1", "4"],
+                subfields=[
+                    Subfield(code="a", value="The Pickwick papers."),
+                    Subfield(code="l", value="French."),
+                ],
             )
         )
-        self.assertEqual(record.uniformtitle(), "The Pickwick papers. French.")
+        self.assertEqual(record.uniformtitle, "The Pickwick papers. French.")
 
     def test_subjects(self):
         record = Record()
         subject1 = "=630  0\\$aTosefta.$lEnglish.$f1977."
         subject2 = "=600  10$aLe Peu, Pepe."
         shlist = [subject1, subject2]
-        self.assertEqual(record.subjects(), [])
+        self.assertEqual(record.subjects, [])
         record.add_field(
             Field(
                 "630",
-                [0, " "],
-                subfields=["a", "Tosefta.", "l", "English.", "f", "1977."],
+                ["0", " "],
+                subfields=[
+                    Subfield(code="a", value="Tosefta."),
+                    Subfield(code="l", value="English."),
+                    Subfield(code="f", value="1977."),
+                ],
             )
         )
         record.add_field(
             Field(
                 "730",
-                [0, " "],
-                subfields=["a", "Tosefta.", "l", "English.", "f", "1977."],
+                ["0", " "],
+                subfields=[
+                    Subfield(code="a", value="Tosefta."),
+                    Subfield(code="l", value="English."),
+                    Subfield(code="f", value="1977."),
+                ],
             )
         )
-        record.add_field(Field("600", [1, 0], subfields=["a", "Le Peu, Pepe."]))
-        self.assertEqual(len(record.subjects()), 2)
-        self.assertEqual(record.subjects()[0].__str__(), subject1)
-        self.assertEqual(record.subjects()[1].__str__(), subject2)
-        rshlist = [rsh.__str__() for rsh in record.subjects()]
+        record.add_field(
+            Field(
+                "600",
+                ["1", "0"],
+                subfields=[Subfield(code="a", value="Le Peu, Pepe.")],
+            )
+        )
+        self.assertEqual(len(record.subjects), 2)
+        self.assertEqual(record.subjects[0].__str__(), subject1)
+        self.assertEqual(record.subjects[1].__str__(), subject2)
+        rshlist = [rsh.__str__() for rsh in record.subjects]
         self.assertEqual(shlist, rshlist)
 
     def test_added_entries(self):
@@ -276,20 +419,36 @@ class RecordTest(unittest.TestCase):
         ae1 = "=730  0\\$aTosefta.$lEnglish.$f1977."
         ae2 = "=700  10$aLe Peu, Pepe."
         aelist = [ae1, ae2]
-        self.assertEqual(record.addedentries(), [])
+        self.assertEqual(record.addedentries, [])
         record.add_field(
             Field(
                 "730",
                 [0, " "],
-                subfields=["a", "Tosefta.", "l", "English.", "f", "1977."],
+                subfields=[
+                    Subfield(code="a", value="Tosefta."),
+                    Subfield(code="l", value="English."),
+                    Subfield(code="f", value="1977."),
+                ],
             )
         )
-        record.add_field(Field("700", [1, 0], subfields=["a", "Le Peu, Pepe."]))
-        record.add_field(Field("245", [0, 0], subfields=["a", "Le Peu's Tosefa."]))
-        self.assertEqual(len(record.addedentries()), 2)
-        self.assertEqual(record.addedentries()[0].__str__(), ae1)
-        self.assertEqual(record.addedentries()[1].__str__(), ae2)
-        raelist = [rae.__str__() for rae in record.addedentries()]
+        record.add_field(
+            Field(
+                "700",
+                ["1", "0"],
+                subfields=[Subfield(code="a", value="Le Peu, Pepe.")],
+            )
+        )
+        record.add_field(
+            Field(
+                "245",
+                ["0", "0"],
+                subfields=[Subfield(code="a", value="Le Peu's Tosefa.")],
+            )
+        )
+        self.assertEqual(len(record.addedentries), 2)
+        self.assertEqual(record.addedentries[0].__str__(), ae1)
+        self.assertEqual(record.addedentries[1].__str__(), ae2)
+        raelist = [rae.__str__() for rae in record.addedentries]
         self.assertEqual(aelist, raelist)
 
     def test_physicaldescription(self):
@@ -297,28 +456,33 @@ class RecordTest(unittest.TestCase):
         pd1 = "=300  \\$a1 photographic print :$bgelatin silver ;$c10 x 56 in."
         pd2 = "=300  \\$aFOO$bBAR$cBAZ"
         pdlist = [pd1, pd2]
-        self.assertEqual(record.physicaldescription(), [])
+        self.assertEqual(record.physicaldescription, [])
         record.add_field(
             Field(
                 "300",
                 ["\\", ""],
                 subfields=[
-                    "a",
-                    "1 photographic print :",
-                    "b",
-                    "gelatin silver ;",
-                    "c",
-                    "10 x 56 in.",
+                    Subfield(code="a", value="1 photographic print :"),
+                    Subfield(code="b", value="gelatin silver ;"),
+                    Subfield(code="c", value="10 x 56 in."),
                 ],
             )
         )
         record.add_field(
-            Field("300", ["\\", ""], subfields=["a", "FOO", "b", "BAR", "c", "BAZ"])
+            Field(
+                "300",
+                ["\\", ""],
+                subfields=[
+                    Subfield(code="a", value="FOO"),
+                    Subfield(code="b", value="BAR"),
+                    Subfield(code="c", value="BAZ"),
+                ],
+            )
         )
-        self.assertEqual(len(record.physicaldescription()), 2)
-        self.assertEqual(record.physicaldescription()[0].__str__(), pd1)
-        self.assertEqual(record.physicaldescription()[1].__str__(), pd2)
-        rpdlist = [rpd.__str__() for rpd in record.physicaldescription()]
+        self.assertEqual(len(record.physicaldescription), 2)
+        self.assertEqual(record.physicaldescription[0].__str__(), pd1)
+        self.assertEqual(record.physicaldescription[1].__str__(), pd2)
+        rpdlist = [rpd.__str__() for rpd in record.physicaldescription]
         self.assertEqual(pdlist, rpdlist)
 
     def test_location(self):
@@ -326,125 +490,140 @@ class RecordTest(unittest.TestCase):
         loc1 = "=852  \\\\$aAmerican Institute of Physics.$bNiels Bohr Library and Archives.$eCollege Park, MD"
         loc2 = "=852  01$aCtY$bMain$hLB201$i.M63"
         loclist = [loc1, loc2]
-        self.assertEqual(record.location(), [])
-        record.add_field(Field("040", [" ", " "], subfields=["a", "DLC", "c", "DLC"]))
+        self.assertEqual(record.location, [])
         record.add_field(
             Field(
-                "852",
+                "040",
                 [" ", " "],
                 subfields=[
-                    "a",
-                    "American Institute of Physics.",
-                    "b",
-                    "Niels Bohr Library and Archives.",
-                    "e",
-                    "College Park, MD",
+                    Subfield(code="a", value="DLC"),
+                    Subfield(code="c", value="DLC"),
                 ],
             )
         )
         record.add_field(
             Field(
                 "852",
-                [0, 1],
-                subfields=["a", "CtY", "b", "Main", "h", "LB201", "i", ".M63"],
+                [" ", " "],
+                subfields=[
+                    Subfield(code="a", value="American Institute of Physics."),
+                    Subfield(code="b", value="Niels Bohr Library and Archives."),
+                    Subfield(code="e", value="College Park, MD"),
+                ],
             )
         )
-        self.assertEqual(len(record.location()), 2)
-        self.assertEqual(record.location()[0].__str__(), loc1)
-        self.assertEqual(record.location()[1].__str__(), loc2)
-        rloclist = [rloc.__str__() for rloc in record.location()]
+        record.add_field(
+            Field(
+                "852",
+                ["0", "1"],
+                subfields=[
+                    Subfield(code="a", value="CtY"),
+                    Subfield(code="b", value="Main"),
+                    Subfield(code="h", value="LB201"),
+                    Subfield(code="i", value=".M63"),
+                ],
+            )
+        )
+        self.assertEqual(len(record.location), 2)
+        self.assertEqual(record.location[0].__str__(), loc1)
+        self.assertEqual(record.location[1].__str__(), loc2)
+        rloclist = [rloc.__str__() for rloc in record.location]
         self.assertEqual(loclist, rloclist)
 
     def test_notes(self):
         record = Record()
-        self.assertEqual(record.notes(), [])
+        self.assertEqual(record.notes, [])
         record.add_field(
             Field(
                 "500",
                 [" ", " "],
                 subfields=[
-                    "a",
-                    "Recast in bronze from artist's plaster original of 1903.",
+                    Subfield(
+                        code="a",
+                        value="Recast in bronze from artist's plaster original of 1903.",
+                    ),
                 ],
             )
         )
         self.assertEqual(
-            record.notes()[0].format_field(),
+            record.notes[0].format_field(),
             "Recast in bronze from artist's plaster original of 1903.",
         )
 
     def test_publisher(self):
         record = Record()
-        self.assertEqual(record.publisher(), None)
+        self.assertEqual(record.publisher, None)
         record.add_field(
             Field(
                 "260",
                 [" ", " "],
                 subfields=[
-                    "a",
-                    "Paris :",
-                    "b",
-                    "Gauthier-Villars ;",
-                    "a",
-                    "Chicago :",
-                    "b",
-                    "University of Chicago Press,",
-                    "c",
-                    "1955.",
+                    Subfield(code="a", value="Paris :"),
+                    Subfield(code="b", value="Gauthier-Villars ;"),
+                    Subfield(code="a", value="Chicago :"),
+                    Subfield(code="b", value="University of Chicago Press,"),
+                    Subfield(code="c", value="1955."),
                 ],
             )
         )
-        self.assertEqual(record.publisher(), "Gauthier-Villars ;")
+        self.assertEqual(record.publisher, "Gauthier-Villars ;")
 
         record = Record()
-        self.assertEqual(record.publisher(), None)
+        self.assertEqual(record.publisher, None)
         record.add_field(
             Field(
                 "264",
                 [" ", "1"],
-                subfields=["a", "London :", "b", "Penguin,", "c", "1961."],
+                subfields=[
+                    Subfield(code="a", value="London :"),
+                    Subfield(code="b", value="Penguin,"),
+                    Subfield(code="c", value="1961."),
+                ],
             )
         )
-        self.assertEqual(record.publisher(), "Penguin,")
+        self.assertEqual(record.publisher, "Penguin,")
 
     def test_pubyear(self):
         record = Record()
-        self.assertEqual(record.pubyear(), None)
+        self.assertEqual(record.pubyear, None)
         record.add_field(
             Field(
                 "260",
                 [" ", " "],
                 subfields=[
-                    "a",
-                    "Paris :",
-                    "b",
-                    "Gauthier-Villars ;",
-                    "a",
-                    "Chicago :",
-                    "b",
-                    "University of Chicago Press,",
-                    "c",
-                    "1955.",
+                    Subfield(code="a", value="Paris :"),
+                    Subfield(code="b", value="Gauthier-Villars ;"),
+                    Subfield(code="a", value="Chicago :"),
+                    Subfield(code="b", value="University of Chicago Press,"),
+                    Subfield(code="c", value="1955."),
                 ],
             )
         )
-        self.assertEqual(record.pubyear(), "1955.")
+        self.assertEqual(record.pubyear, "1955.")
 
         record = Record()
-        self.assertEqual(record.pubyear(), None)
+        self.assertEqual(record.pubyear, None)
         record.add_field(
             Field(
                 "264",
                 [" ", "1"],
-                subfields=["a", "London :", "b", "Penguin,", "c", "1961."],
+                subfields=[
+                    Subfield(code="a", value="London :"),
+                    Subfield(code="b", value="Penguin,"),
+                    Subfield(code="c", value="1961."),
+                ],
             )
         )
-        self.assertEqual(record.pubyear(), "1961.")
+        self.assertEqual(record.pubyear, "1961.")
 
     def test_alphatag(self):
         record = Record()
-        record.add_field(Field("CAT", [" ", " "], subfields=["a", "foo"]))
-        record.add_field(Field("CAT", [" ", " "], subfields=["b", "bar"]))
+        record.add_field(
+            Field("CAT", [" ", " "], subfields=[Subfield(code="a", value="foo")])
+        )
+        record.add_field(
+            Field("CAT", [" ", " "], subfields=[Subfield(code="b", value="bar")])
+        )
         fields = record.get_fields("CAT")
         self.assertEqual(len(fields), 2)
         self.assertEqual(fields[0]["a"], "foo")
@@ -457,8 +636,12 @@ class RecordTest(unittest.TestCase):
         with open("test/one.dat", "rb") as fh:
             r1 = next(MARCReader(fh))
             r2 = deepcopy(r1)
-            r1.add_field(Field("999", [" ", " "], subfields=["a", "foo"]))
-            r2.add_field(Field("999", [" ", " "], subfields=["a", "bar"]))
+            r1.add_field(
+                Field("999", [" ", " "], subfields=[Subfield(code="a", value="foo")])
+            )
+            r2.add_field(
+                Field("999", [" ", " "], subfields=[Subfield(code="a", value="bar")])
+            )
             self.assertEqual(r1["999"]["a"], "foo")
             self.assertEqual(r2["999"]["a"], "bar")
 
@@ -472,10 +655,10 @@ class RecordTest(unittest.TestCase):
             Field(
                 tag="245",
                 indicators=["0", "1"],
-                subfields=["a", "The pragmatic programmer"],
+                subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
-        record.leader = "00067     2200037   4500"
+        record.leader = "00067    a2200037   4500"
         leader_not_touched = record.leader
         record.as_marc()
         leader_touched = record.leader
@@ -503,12 +686,12 @@ class RecordTest(unittest.TestCase):
             Field(
                 tag="245",
                 indicators=["0", "1"],
-                subfields=["a", "The pragmatic programmer"],
+                subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
         transmission_format = record.as_marc()
         transmission_format_leader = transmission_format[0:24]
-        self.assertEqual(transmission_format_leader, b"00067     2200037   4500")
+        self.assertEqual(transmission_format_leader, b"00067    a2200037   4500")
 
     def test_init_with_no_leader_but_with_force_utf8(self):
         record = Record(force_utf8=True)
@@ -516,7 +699,7 @@ class RecordTest(unittest.TestCase):
             Field(
                 tag="245",
                 indicators=["0", "1"],
-                subfields=["a", "The pragmatic programmer"],
+                subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
         transmission_format = record.as_marc()
@@ -529,12 +712,12 @@ class RecordTest(unittest.TestCase):
             Field(
                 tag="245",
                 indicators=["0", "1"],
-                subfields=["a", "The pragmatic programmer"],
+                subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
         transmission_format = record.as_marc()
         transmission_format_leader = transmission_format[0:24]
-        self.assertEqual(transmission_format_leader, b"00067fghij2200037rst4500")
+        self.assertEqual(transmission_format_leader, b"00067fghia2200037rst4500")
 
     def test_init_with_leader_and_force_utf8(self):
         record = Record(leader="abcdefghijklmnopqrstuvwx", force_utf8=True)
@@ -542,12 +725,33 @@ class RecordTest(unittest.TestCase):
             Field(
                 tag="245",
                 indicators=["0", "1"],
-                subfields=["a", "The pragmatic programmer"],
+                subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
         transmission_format = record.as_marc()
         transmission_format_leader = transmission_format[0:24]
         self.assertEqual(transmission_format_leader, b"00067fghia2200037rst4500")
+
+    def test_as_marc_to_unicode_conversion(self):
+        with open("test/marc8-to-unicode.dat", "rb") as fh:
+            modified_record_bytes = fh.read()
+
+        with open("test/marc8.dat", "rb") as fh:
+            original_record_bytes = fh.read()
+            reader = MARCReader(original_record_bytes, to_unicode=True)
+            record = next(reader)
+            record_bytes = record.as_marc()
+            self.assertEqual(record_bytes[9], ord("a"))
+            self.assertEqual(modified_record_bytes, record_bytes)
+
+    def test_map_marc8_record_against_unicode_as_marc(self):
+        from pymarc.record import map_marc8_record
+
+        with open("test/marc8.dat", "rb") as fh:
+            reader = MARCReader(fh, to_unicode=True)
+            record = next(reader)
+            map_marc8_data = map_marc8_record(record)
+            self.assertEqual(map_marc8_data.as_marc(), record.as_marc())
 
 
 def suite():

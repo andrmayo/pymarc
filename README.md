@@ -55,7 +55,7 @@ from pymarc import MARCReader
 with open('test/marc.dat', 'rb') as fh:
     reader = MARCReader(fh)
     for record in reader:
-        print(record.title())
+        print(record.title)
 ```
 ```
 The pragmatic programmer : from journeyman to master /
@@ -82,14 +82,15 @@ Introduction to algorithms /
 ANSI Common Lisp /
 ```
 
-A `pymarc.Record` object has a few handy methods like `title` for getting at
+A `pymarc.Record` object has a few handy properties like `title` for getting at
 bits of a bibliographic record, others include: `author`, `isbn`, `subjects`,
 `location`, `notes`, `physicaldescription`, `publisher`, `pubyear`, `issn`,
 `issn_title`. But really, to work with MARC data you need to understand the
 numeric field tags and subfield codes that are used to designate various bits
-of information. There is a lot more hiding in a MARC record than these methods
-provide access to. For example the `title` method extracts the information from
- the `245` field, subfields `a` and `b`. You can access `245a` like so:
+of information. There is a lot more data hidden in a MARC record than these
+helper properties provide access to. For example the `title` property works by
+extracting the information from the `245` field, subfields `a` and `b` behind
+the scenes. You can access `245a` like so:
 
 ```python
 print(record['245']['a'])
@@ -110,22 +111,47 @@ Formats](http://www.loc.gov/marc/marcdocz.html) page at the Library of Congress 
 
 ### Writing
 
+*Note: As of v5.0.0 `Subfield` is used to create subfields. Prior to v5,
+subfields were constructed and accessed as a list of strings, e.g., `[code,
+value, code, value]`. In v5.0.0 this has been changed to organize the subfields
+into a list of tuples, e.g., `[(code, value), (code, value)]`. The `Subfield`
+is implemented as a `NamedTuple` so that the tuples can be constructed as
+`Subfield(code=code, value=value)`. The old style of creating subfields is no
+longer supported. Attempting to pass a list of strings to the `subfields`
+parameter for the `Field` constructor will raise a `ValueError`. For
+convenience the `Field.convert_legacy_subfields` can be used to convert a
+legacy list of strings into a list of `Subfield`s.*
+
 Here's an example of creating a record and writing it out to a file.
 
 ```python
-from pymarc import Record, Field
+from pymarc import Record, Field, Subfield
+
 record = Record()
 record.add_field(
     Field(
-        tag = '245',
-        indicators = ['0','1'],
-        subfields = [
-            'a', 'The pragmatic programmer : ',
-            'b', 'from journeyman to master /',
-            'c', 'Andrew Hunt, David Thomas.'
+        tag='245',
+        indicators=['0', '1'],
+        subfields=[
+            Subfield(code='a', value='The pragmatic programmer : '),
+            Subfield(code='b', value='from journeyman to master /'),
+            Subfield(code='c', value='Andrew Hunt, David Thomas.')
         ]))
 with open('file.dat', 'wb') as out:
     out.write(record.as_marc())
+```
+
+To convert from the old string list to a list of `Subfield`s, the `.convert_legacy_subfields` class method
+is provided on the `Field` class.
+
+```python
+from pymarc import Field, Subfield
+
+legacy_fields: list[str] = ['a', 'The pragmatic programmer : ',
+                            'b', 'from journeyman to master /',
+                            'c', 'Andrew Hunt, David Thomas']
+
+coded_fields: list[Subfield] = Field.convert_legacy_subfields(legacy_fields)
 ```
 
 ### Updating
@@ -138,7 +164,7 @@ from pymarc import MARCReader
 with open('test/marc.dat', 'rb') as fh:
     reader = MARCReader(fh)
     record = next(reader)
-    record['245']['a'] = 'The Zombie Programmer'
+    record['245']['a'] = 'The Zombie Programmer : '
 with open('file.dat', 'wb') as out:
     out.write(record.as_marc())
 ```
@@ -181,6 +207,8 @@ Also, if you prefer you can pass in a file like object in addition to the path
 to both *map_xml* and *parse_xml_to_array*:
 
 ```python
+from pymarc import parse_xml_to_array
+
 records = parse_xml_to_array(open('test/batch.xml'))
 ```
 

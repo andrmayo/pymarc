@@ -117,13 +117,4 @@ class MissingLinkedFields(PymarcException):
         self.field = field
 
     def __str__(self):
-        return (
-            self.field.tag
-            + " field includes a subfield 6 but no linked fields could be found."
-        )
-
-
-# This alias for FatalReaderError is here to correct a misspelling that was
-# introduced in v4.0.0. It can be removed in v5.0.0.
-
-FatalReaderEror = FatalReaderError
+        return f"{self.field.tag} field includes a subfield 6 but no linked fields could be found."
