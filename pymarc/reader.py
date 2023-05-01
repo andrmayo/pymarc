@@ -50,8 +50,11 @@ class MARCReader(Reader):
 
         reader = MARCReader(open('file.dat', 'rb'), to_unicode=True)
 
-    This will decode from MARC-8 or UTF-8 depending on the value in the
-    MARC leader at position 9.
+    This will decode from MARC-8 or utf-8 depending on the value in the
+    MARC leader at position 9. Upon serialization of the Record object to MARC21,
+    the resulting output will be utf-8 encoded and the value in the MARC leader
+    at position 9 will be set appropriately to indicate the change of
+    character encoding.
 
     If you find yourself in the unfortunate position of having data that
     is utf-8 encoded without the leader set appropriately you can use
