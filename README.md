@@ -82,13 +82,13 @@ Introduction to algorithms /
 ANSI Common Lisp /
 ```
 
-A `pymarc.Record` object has a few handy methods like `title` for getting at
+A `pymarc.Record` object has a few handy properties like `title` for getting at
 bits of a bibliographic record, others include: `author`, `isbn`, `subjects`,
 `location`, `notes`, `physicaldescription`, `publisher`, `pubyear`, `issn`,
 `issn_title`. But really, to work with MARC data you need to understand the
 numeric field tags and subfield codes that are used to designate various bits
 of information. There is a lot more hiding in a MARC record than these methods
-provide access to. For example the `title` method extracts the information from
+provide access to. For example the `title` property extracts the information from
  the `245` field, subfields `a` and `b`. You can access `245a` like so:
 
 ```python
@@ -106,7 +106,8 @@ for f in record.get_fields('650'):
 
 If you are new to MARC fields [Understanding
 MARC](http://www.loc.gov/marc/umb/) is a pretty good primer, and the [MARC 21
-Formats](http://www.loc.gov/marc/marcdocz.html) page at the Library of Congress is a good reference once you understand the basics.
+Formats](http://www.loc.gov/marc/marcdocz.html) page at the Library of Congress 
+is a good reference once you understand the basics.
 
 ### Writing
 
@@ -118,8 +119,8 @@ is implemented as a `NamedTuple` so that the tuples can be constructed as
 `Subfield(code=code, value=value)`. The old style of creating subfields is no
 longer supported. Attempting to pass a list of strings to the `subfields`
 parameter for the `Field` constructor will raise a `ValueError`. For
-convenience the `Field.convert_legacy_subfields` can be used to convert a
-legacy list of strings into a list of `Subfield`s.*
+convenience the `Field.convert_legacy_subfields` class method can be used to 
+convert a legacy list of strings into a list of `Subfield`s.*
 
 Here's an example of creating a record and writing it out to a file.
 
@@ -197,7 +198,7 @@ can:
 from pymarc import map_xml
 
 def print_title(r):
-    print(r.title())
+    print(r.title)
 
 map_xml(print_title, 'test/batch.xml')
 ```
@@ -225,7 +226,7 @@ with open('test/one.dat','rb') as fh:
         print(record.as_json(indent=2))
 ```
 
-```javascript
+```json
 {
   "leader": "01060cam  22002894a 4500",
   "fields": [

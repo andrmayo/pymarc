@@ -39,7 +39,7 @@ available here in pymarc repository:
     with open('test/marc.dat', 'rb') as fh:
         reader = MARCReader(fh)
         for record in reader:
-            print(record.title())
+            print(record.title)
 
     The pragmatic programmer : from journeyman to master /
     Programming Python /
@@ -79,7 +79,7 @@ can help the user to take a corrective action and continue or stop the reading:
         for record in reader:
             if record:
                 # consume the record:
-                print(record.title())
+                print(record.title)
             elif isinstance(reader.current_exception, exc.FatalReaderError):
                 # data file format error
                 # reader will raise StopIteration
@@ -96,14 +96,14 @@ the data stream. To avoid data misinterpretation it stops.
 In case of other errors (wrong encodind etc.) reader continues to
 the next record.
 
-A pymarc.Record object has a few handy methods like title for
-getting at bits of a bibliographic record, others include: author,
-isbn, subjects, location, notes, physical description, publisher,
-pubyear. But really, to work with MARC data you need to understand the
+A `pymarc.Record` object has a few handy properties like `title` for
+getting at bits of a bibliographic record, others include: `author`,
+`isbn`, `subjects`, `location`, `notes`, `physicaldescription`, `publisher`,
+`pubyear`. But really, to work with MARC data you need to understand the
 numeric field tags and subfield codes that are used to designate
 various bits of information. There is a lot more hiding in a MARC
-record than these methods provide access to. For example the title
-method extracts the information from the 245 field, subfields a and b.
+record than these properties provide access to. For example the title
+property extracts the information from the 245 field, subfields a and b.
 You can access `245a` like so:
 
 .. code-block:: python
