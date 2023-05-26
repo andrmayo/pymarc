@@ -133,11 +133,18 @@ class MARC8ToUnicode:
             mb_flag = is_multibyte(self.g0)
 
             if mb_flag:
-                code_point = (
-                    ord(marc8_string[pos : pos + 1]) * 65536
-                    + ord(marc8_string[pos + 1 : pos + 2]) * 256
-                    + ord(marc8_string[pos + 2 : pos + 3])
-                )
+                # conditional check if string longer than pos+3 because of malformed marc8 string
+                if len(marc8_string) < pos + 3:
+                    sys.stderr.write(
+                        f"Multi-byte position {pos+3} exceeds length of marc8 string {len(marc8_string)}\n"
+                    )
+                    code_point = 32  # Sets last character as a blank string
+                else:
+                    code_point = (
+                        ord(marc8_string[pos : pos + 1]) * 65536
+                        + ord(marc8_string[pos + 1 : pos + 2]) * 256
+                        + ord(marc8_string[pos + 2 : pos + 3])
+                    )
                 pos += 3
             else:
                 code_point = ord(marc8_string[pos : pos + 1])
