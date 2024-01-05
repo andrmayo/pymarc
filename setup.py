@@ -8,7 +8,7 @@
 
 from setuptools import setup
 
-version = "5.1.0"
+version = "5.1.1"
 
 classifiers = """
 Intended Audience :: Education
@@ -42,4 +42,7 @@ setup(
     classifiers=list(filter(None, classifiers.split("\n"))),
     test_suite="test",
     python_requires=">=3.7",
+    package_data = {
+        "pymarc": ["py.typed"]
+    },
 )
