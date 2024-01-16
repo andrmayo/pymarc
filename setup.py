@@ -42,7 +42,5 @@ setup(
     classifiers=list(filter(None, classifiers.split("\n"))),
     test_suite="test",
     python_requires=">=3.7",
-    package_data = {
-        "pymarc": ["py.typed"]
-    },
+    package_data={"pymarc": ["py.typed"]},
 )
