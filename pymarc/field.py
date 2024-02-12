@@ -216,7 +216,7 @@ class Field:
             raise StopIteration
 
     def value(self) -> str:
-        """Returns the field as a string w/ tag, indicators, and subfield indicators."""
+        """Returns the field's subfields (or data in the case of control fields) as a string."""
         if self.is_control_field():
             return self.data
         return " ".join(subfield.value.strip() for subfield in self.subfields)
@@ -312,7 +312,7 @@ class Field:
     as_marc21 = as_marc
 
     def format_field(self) -> str:
-        """Returns the field as a string w/ tag, indicators, and subfield indicators.
+        """Returns the field's subfields (or data in the case of control fields) as a string.
 
         Like :func:`Field.value() <pymarc.field.Field.value>`, but prettier
         (adds spaces, formats subject headings).
