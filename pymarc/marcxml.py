@@ -160,7 +160,7 @@ def record_to_xml_node(record, quiet=False, namespace=False):
     marc8 = MARC8ToUnicode(quiet=quiet)
 
     def translate(data):
-        if type(data) == str:
+        if type(data) is str:
             return data
         else:
             return marc8.translate(data)
