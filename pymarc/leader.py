@@ -16,7 +16,7 @@ class Leader(object):
 
     A class to manipulate a `Record`'s leader.
 
-    You can use the properties (`status`, `bibliographic_level`, etc.) or their
+    You can use the properties (`record_status`, `bibliographic_level`, etc.) or their
     slices/index equivalent (`leader[5]`, `leader[7]`, etc.) to read and write
     values.
 
@@ -28,10 +28,10 @@ class Leader(object):
 
         leader = Leader("00475cas a2200169 i 4500")
         leader[0:4]  # returns "00475"
-        leader.status  # returns "c"
-        leader.status = "a"  # sets the status to "a"
-        leader[5] # returns the status "a"
-        leader[5] = "b" # sets the status to "b"
+        leader.record_status  # returns "c"
+        leader.record_status = "a"  # sets the record status to "a"
+        leader[5] # returns the record status "a"
+        leader[5] = "b" # sets the record status to "b"
         str(leader)  # "00475bas a2200169 i 4500"
 
     Usually the leader is accessed through the `leader` property of a record.
@@ -69,7 +69,7 @@ class Leader(object):
 
         leader[5] = "a"
         leader[0:4] = "0000"
-        leader.status = "a"
+        leader.record_status = "a"
         """
         if isinstance(item, slice):
             self._replace_values(position=item.start, value=value)
