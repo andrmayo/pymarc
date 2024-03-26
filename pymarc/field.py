@@ -204,16 +204,15 @@ class Field:
     def __setitem__(self, code: str, value: str) -> None:
         """Set the values of the subfield code in a field.
 
-        If the field is a control field, nothing happens.
-
         .. code-block:: python
 
             field['a'] = 'value'
 
-        Raises KeyError if there is more than one subfield code.
+        Raises KeyError if there is more than one subfield code, or
+        if there is an attempt to set a subfield on a control field.
         """
         if self.control_field:
-            return None
+            raise KeyError("field is a control field")
 
         num_subfields: int = [x.code for x in self.subfields].count(code)
 
