@@ -32,7 +32,7 @@ class JSONHandler:
             for field in fields:
                 tag, remaining = field.popitem()
                 self._field = Field(tag)
-                if self._field.is_control_field():
+                if self._field.control_field:
                     self._field.data = remaining
                 else:
                     self.element(remaining, "subfields")

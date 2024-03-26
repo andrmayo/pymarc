@@ -69,7 +69,7 @@ class XmlTest(unittest.TestCase):
         pos = 0
         while pos < len(field1):
             self.assertEqual(field1[pos].tag, field2[pos].tag)
-            if field1[pos].is_control_field():
+            if field1[pos].control_field:
                 self.assertEqual(field1[pos].data, field2[pos].data)
             else:
                 self.assertEqual(

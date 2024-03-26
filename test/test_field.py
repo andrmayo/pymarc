@@ -207,7 +207,7 @@ class FieldTest(unittest.TestCase):
         )
         self.assertEqual(f.tag, "CAT")
         self.assertEqual(f["a"], "foo")
-        self.assertEqual(f.is_control_field(), False)
+        self.assertEqual(f.control_field, False)
 
     def test_setitem_no_key(self):
         try:

@@ -480,7 +480,7 @@ class Record:
         record: Dict = {"leader": str(self.leader), "fields": []}
 
         for field in self:
-            if field.is_control_field():
+            if field.control_field:
                 record["fields"].append({field.tag: field.data})
             else:
                 record["fields"].append(
