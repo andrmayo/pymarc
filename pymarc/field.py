@@ -38,14 +38,14 @@ class Field:
         field = Field(tag='001', data='fol05731351')
     """
 
-    __slots__ = ("tag", "data", "indicators", "subfields", "__pos")
+    __slots__ = ("tag", "data", "indicators", "subfields", "__pos", "control_field")
 
     def __init__(
         self,
         tag: str,
         indicators: Optional[List[str]] = None,
         subfields: Optional[List[Subfield]] = None,
-        data: str = "",
+        data: Optional[str] = None,
     ):
         """Initialize a field `tag`."""
         # attempt to normalize integer tags if necessary
@@ -61,11 +61,17 @@ class Field:
                 """
             )
 
+        self.subfields: List[Subfield] = []
+        self.indicators: List[str] = []
+        self.data: Optional[str] = None
+        self.control_field: bool = False
+
         # assume control fields are numeric only; replicates ruby-marc behavior
         if self.tag < "010" and self.tag.isdigit():
+            self.control_field = True
             self.data = data
         else:
-            self.subfields: List[Subfield] = subfields or []
+            self.subfields = subfields or []
             self.indicators = [str(x) for x in (indicators or [])]
 
     @classmethod
@@ -122,8 +128,8 @@ class Field:
         [2] http://search.cpan.org/~eijabb/MARC-File-MARCMaker/
         [3] http://www.loc.gov/marc/mnemonics.html
         """
-        if self.is_control_field():
-            _data: str = self.data.replace(" ", "\\")
+        if self.control_field:
+            _data: str = self.data.replace(" ", "\\") if self.data else ""
             return f"={self.tag}  {_data}"
         else:
             _ind = []
@@ -144,8 +150,12 @@ class Field:
         """A dict-like get method with a default value.
 
         Implements a non-raising getter for a subfield code that will
-        return the value of the first subfield whose code is `key`.
+        return the value of the first subfield whose code is `key`. Returns
+        the default value if the field is a control field.
         """
+        if self.control_field:
+            return default
+
         if code not in self:
             return default
         return self[code]
@@ -153,12 +163,16 @@ class Field:
     def __getitem__(self, code: str) -> str:
         """Retrieve the first subfield with a given subfield code in a field.
 
-        Raises KeyError if `code` is not in the Field.
+        Raises KeyError if `code` is not in the Field. If the field is a control
+        field, also raise a KeyError.
 
         .. code-block:: python
 
             field['a']
         """
+        if self.control_field:
+            raise KeyError
+
         if code not in self:
             raise KeyError
 
@@ -172,11 +186,16 @@ class Field:
     def __contains__(self, subfield: str) -> bool:
         """Allows a shorthand test of field membership.
 
+        If the field is a control field, returns False.
+
         .. code-block:: python
 
             'a' in field
 
         """
+        if self.control_field:
+            return False
+
         for s in self.subfields:
             if s.code == subfield:
                 return True
@@ -189,8 +208,12 @@ class Field:
 
             field['a'] = 'value'
 
-        Raises KeyError if there is more than one subfield code.
+        Raises KeyError if there is more than one subfield code, or
+        if there is an attempt to set a subfield on a control field.
         """
+        if self.control_field:
+            raise KeyError("field is a control field")
+
         num_subfields: int = [x.code for x in self.subfields].count(code)
 
         if num_subfields > 1:
@@ -205,7 +228,7 @@ class Field:
                 break
 
     def __next__(self) -> Subfield:
-        if not hasattr(self, "subfields"):
+        if self.control_field:
             raise StopIteration
 
         try:
@@ -217,8 +240,9 @@ class Field:
 
     def value(self) -> str:
         """Returns the field's subfields (or data in the case of control fields) as a string."""
-        if self.is_control_field():
-            return self.data
+        if self.control_field:
+            return self.data or ""
+
         return " ".join(subfield.value.strip() for subfield in self.subfields)
 
     def get_subfields(self, *codes) -> List[str]:
@@ -233,6 +257,9 @@ class Field:
             print(field.get_subfields('a'))
             print(field.get_subfields('a', 'b', 'z'))
         """
+        if self.control_field:
+            return []
+
         return [subfield.value for subfield in self.subfields if subfield.code in codes]
 
     def add_subfield(self, code: str, value: str, pos=None) -> None:
@@ -240,11 +267,16 @@ class Field:
 
         If pos is not supplied or out of range, the subfield will be added at the end.
 
+        If the field is a control field, nothing will happen.
+
         .. code-block:: python
 
             field.add_subfield('u', 'http://www.loc.gov')
             field.add_subfield('u', 'http://www.loc.gov', 0)
         """
+        if self.control_field:
+            return None
+
         append: bool = pos is None or pos > len(self.subfields)
         insertable: Subfield = Subfield(code=code, value=value)
 
@@ -262,6 +294,9 @@ class Field:
 
         If no subfield is found with the specified code None is returned.
         """
+        if self.control_field:
+            return None
+
         if code not in self:
             return None
 
@@ -273,9 +308,14 @@ class Field:
     def subfields_as_dict(self) -> Dict[str, List]:
         """Returns the subfields as a dictionary.
 
+        Returns an empty dictionary if the field is a control field.
+
         The dictionary is a mapping of subfield codes and values. Since
         subfield codes can repeat the values are a list.
         """
+        if self.control_field:
+            return {}
+
         subs: DefaultDict[str, List] = defaultdict(list)
         for field in self.subfields:
             subs[field.code].append(field.value)
@@ -284,9 +324,12 @@ class Field:
     def is_control_field(self) -> bool:
         """Returns true or false if the field is considered a control field.
 
+        Prefer using the `control_field` property directly instead of this,
+        which has been retained for legacy compatibility.
+
         Control fields lack indicators and subfields.
         """
-        return self.tag < "010" and self.tag.isdigit()
+        return self.control_field
 
     def linkage_occurrence_num(self) -> Optional[str]:
         """Return the 'occurrence number' part of subfield 6, or None if not present."""
@@ -295,7 +338,7 @@ class Field:
 
     def as_marc(self, encoding: str) -> bytes:
         """Used during conversion of a field to raw marc."""
-        if self.is_control_field():
+        if self.control_field:
             return f"{self.data}{END_OF_FIELD}".encode(encoding)
 
         _subf = []
@@ -317,8 +360,8 @@ class Field:
         Like :func:`Field.value() <pymarc.field.Field.value>`, but prettier
         (adds spaces, formats subject headings).
         """
-        if self.is_control_field():
-            return self.data
+        if self.control_field:
+            return self.data or ""
 
         field_data: str = ""
 
@@ -373,7 +416,7 @@ class RawField(Field):
         """Used during conversion of a field to raw MARC."""
         if encoding is not None:
             logging.warning("Attempt to force a RawField into encoding %s", encoding)
-        if self.is_control_field():
+        if self.control_field:
             return self.data + END_OF_FIELD.encode("ascii")  # type: ignore
         marc: bytes = self.indicator1.encode("ascii") + self.indicator2.encode("ascii")
         for subfield in self.subfields:
@@ -387,7 +430,7 @@ class RawField(Field):
 
 def map_marc8_field(f: Field) -> Field:
     """Map MARC8 field."""
-    if f.is_control_field():
+    if f.control_field:
         f.data = marc8_to_unicode(f.data)
     else:
         f.subfields = [

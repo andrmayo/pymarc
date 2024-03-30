@@ -173,7 +173,7 @@ def record_to_xml_node(record, quiet=False, namespace=False):
     leader = ET.SubElement(root, "leader")
     leader.text = str(record.leader)
     for field in record:
-        if field.is_control_field():
+        if field.control_field:
             control_field = ET.SubElement(root, "controlfield")
             control_field.set("tag", field.tag)
             control_field.text = translate(field.data)
