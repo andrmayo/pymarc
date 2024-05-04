@@ -6,7 +6,7 @@
 
 """From JSON to MARC21."""
 
-from pymarc import Field, Record, JSONReader
+from pymarc import Field, Indicators, Record, JSONReader
 
 
 class JSONHandler:
@@ -36,8 +36,8 @@ class JSONHandler:
                     self._field.data = remaining
                 else:
                     self.element(remaining, "subfields")
-                    self._field.indicators.extend(
-                        [remaining["ind1"], remaining["ind2"]]
+                    self._field.indicators = Indicators(
+                        remaining["ind1"], remaining["ind2"]
                     )
                 self._record.add_field(self._field)
             self.process_record(self._record)

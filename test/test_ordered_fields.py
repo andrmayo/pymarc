@@ -14,7 +14,9 @@ class OrderedFieldsTest(unittest.TestCase):
         record = pymarc.Record()
         for tag in ("999", "888", "111", "abc", "666", "988", "998"):
             field = pymarc.Field(
-                tag, ["0", "0"], [pymarc.Subfield(code="a", value="foo")]
+                tag,
+                pymarc.Indicators("0", "0"),
+                [pymarc.Subfield(code="a", value="foo")],
             )
             record.add_ordered_field(field)
 
@@ -35,7 +37,9 @@ class OrderedFieldsTest(unittest.TestCase):
         record = pymarc.Record()
         for tag in ("999", "888", "111", "abc", "666", "988", "998"):
             field = pymarc.Field(
-                tag, ["0", "0"], [pymarc.Subfield(code="a", value="foo")]
+                tag,
+                pymarc.Indicators("0", "0"),
+                [pymarc.Subfield(code="a", value="foo")],
             )
             record.add_grouped_field(field)
 

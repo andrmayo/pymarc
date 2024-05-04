@@ -6,14 +6,14 @@
 import unittest
 import sys
 
-from pymarc.field import Field, Subfield
+from pymarc.field import Field, Subfield, Indicators
 
 
 class FieldTest(unittest.TestCase):
     def setUp(self):
         self.field = Field(
             tag="245",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[
                 Subfield(code="a", value="Huckleberry Finn: "),
                 Subfield(code="b", value="An American Odyssey"),
@@ -26,17 +26,67 @@ class FieldTest(unittest.TestCase):
 
         self.subjectfield = Field(
             tag="650",
-            indicators=[" ", "0"],
+            indicators=Indicators(" ", "0"),
             subfields=[
                 Subfield(code="a", value="Python (Computer program language)"),
                 Subfield(code="v", value="Poetry."),
             ],
         )
 
+    def test_controlfield_subfield_is_empty(self):
+        self.assertEqual(len(self.controlfield.subfields), 0)
+        self.assertIsNone(self.controlfield.indicators)
+
+    def test_field_data_is_none_if_not_control(self):
+        self.assertIsNone(self.field.data)
+
+    def test_indicators_if_not_supplied(self):
+        f = Field(
+            tag="245",
+            subfields=[
+                Subfield(code="a", value="Huckleberry Finn: "),
+                Subfield(code="b", value="An American Odyssey"),
+            ],
+        )
+        self.assertEqual(f.indicators, (" ", " "))
+
+    def test_invalid_indicators_list(self):
+        with self.assertRaises(ValueError):
+            _ = Field(
+                tag="245",
+                indicators=["a", "b", "c"],
+                subfields=[
+                    Subfield(code="a", value="Huckleberry Finn: "),
+                    Subfield(code="b", value="An American Odyssey"),
+                ],
+            )
+
+    def test_invalid_indicators_tuple(self):
+        with self.assertRaises(ValueError):
+            _ = Field(
+                tag="245",
+                indicators=("a", "b", "c"),
+                subfields=[
+                    Subfield(code="a", value="Huckleberry Finn: "),
+                    Subfield(code="b", value="An American Odyssey"),
+                ],
+            )
+
+    def test_legacy_indicators_two_value_list(self):
+        f = Field(
+            tag="245",
+            indicators=["a", "b"],
+            subfields=[
+                Subfield(code="a", value="Huckleberry Finn: "),
+                Subfield(code="b", value="An American Odyssey"),
+            ],
+        )
+        self.assertIsInstance(f.indicators, Indicators)
+
     def test_implicit_coded_subfield_constructor(self):
         field = Field(
             tag="245",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[
                 Subfield("a", "Huckleberry Finn: "),
                 Subfield("b", "An American Odyssey"),
@@ -48,7 +98,7 @@ class FieldTest(unittest.TestCase):
     def test_explicit_coded_subfield(self):
         field = Field(
             tag="245",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[
                 Subfield(code="a", value="Huckleberry Finn: "),
                 Subfield(code="b", value="An American Odyssey"),
@@ -60,7 +110,11 @@ class FieldTest(unittest.TestCase):
     def test_old_style_raises_valueerror(self):
         old_style_subfields = ["a", "Huckleberry Finn: ", "b", "An American Odyssey"]
         with self.assertRaises(ValueError):
-            _ = Field(tag="245", indicators=["0", "1"], subfields=old_style_subfields)
+            _ = Field(
+                tag="245",
+                indicators=Indicators("0", "1"),
+                subfields=old_style_subfields,
+            )
 
     def test_string(self):
         self.assertEqual(
@@ -74,7 +128,9 @@ class FieldTest(unittest.TestCase):
 
     def test_indicators(self):
         self.assertEqual(self.field.indicator1, "0")
+        self.assertEqual(self.field.indicators.first, "0")
         self.assertEqual(self.field.indicator2, "1")
+        self.assertEqual(self.field.indicators.second, "1")
 
     def test_subfields_created(self):
         subfields = self.field.subfields
@@ -134,14 +190,14 @@ class FieldTest(unittest.TestCase):
         # make sure this doesn't throw an exception
         Field(
             tag="3 0",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[Subfield(code="a", value="foo")],
         )
 
     def test_add_subfield(self):
         field = Field(
             tag="245",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[Subfield(code="a", value="foo")],
         )
         field.add_subfield("a", "bar")
@@ -156,7 +212,7 @@ class FieldTest(unittest.TestCase):
     def test_delete_subfield(self):
         field = Field(
             tag="200",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[
                 Subfield(code="a", value="My Title"),
                 Subfield(code="a", value="Kinda Bogus Anyhow"),
@@ -170,7 +226,7 @@ class FieldTest(unittest.TestCase):
     def test_subfield_delete_contains(self):
         field = Field(
             tag="200",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[
                 Subfield(code="a", value="My Title"),
                 Subfield(code="z", value="Kinda Bogus Anyhow"),
@@ -196,13 +252,13 @@ class FieldTest(unittest.TestCase):
         )
 
     def test_tag_normalize(self):
-        f = Field(tag="42", indicators=["", ""])
+        f = Field(tag="42", indicators=Indicators("", ""))
         self.assertEqual(f.tag, "042")
 
     def test_alphatag(self):
         f = Field(
             tag="CAT",
-            indicators=["0", "1"],
+            indicators=Indicators("0", "1"),
             subfields=[Subfield(code="a", value="foo")],
         )
         self.assertEqual(f.tag, "CAT")
@@ -245,7 +301,7 @@ class FieldTest(unittest.TestCase):
     def test_delete_subfield_only_by_code(self):
         field = Field(
             tag="960",
-            indicators=[" ", " "],
+            indicators=Indicators(" ", " "),
             subfields=[
                 Subfield(code="a", value="b"),
                 Subfield(code="b", value="x"),
@@ -258,7 +314,7 @@ class FieldTest(unittest.TestCase):
     def test_subfield_dict(self):
         field = Field(
             tag="680",
-            indicators=[" ", " "],
+            indicators=Indicators(" ", " "),
             subfields=[
                 Subfield(code="a", value="Repeated"),
                 Subfield(code="a", value="Subfield"),
@@ -270,14 +326,14 @@ class FieldTest(unittest.TestCase):
         self.assertEqual(dictionary["a"], ["Repeated", "Subfield"])
 
     def test_set_indicators_affects_str(self):
-        self.field.indicators[0] = "9"
+        self.field.indicator1 = "9"
         self.field.indicator2 = "9"
         self.assertEqual(
             str(self.field), "=245  99$aHuckleberry Finn: $bAn American Odyssey"
         )
 
     def test_set_indicators_affects_marc(self):
-        self.field.indicators[0] = "9"
+        self.field.indicator1 = "9"
         self.field.indicator2 = "9"
         self.assertEqual(
             self.field.as_marc("utf-8"),
@@ -287,25 +343,25 @@ class FieldTest(unittest.TestCase):
     def test_linkage_occurrence_num(self):
         f = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[Subfield(code="6", value="880-01")],
         )
         self.assertEqual(f.linkage_occurrence_num(), "01")
         f = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[Subfield(code="6", value="530-00/(2/r")],
         )
         self.assertEqual(f.linkage_occurrence_num(), "00")
         f = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[Subfield(code="6", value="100-42/Cyrl")],
         )
         self.assertEqual(f.linkage_occurrence_num(), "42")
         f = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[Subfield(code="a", value="Music primer")],
         )
         self.assertIsNone(f.linkage_occurrence_num())

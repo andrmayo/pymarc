@@ -7,6 +7,10 @@
     - mypy --ignore-missing-imports .
     - python setup.py test
 
+test-3.12:
+  image: python:3.12-slim-bookworm
+  <<: *default
+
 test-3.11:
   image: python:3.11-slim-buster
   <<: *default
@@ -21,8 +25,4 @@ test-3.9:
 
 test-3.8:
   image: python:3.8-slim-buster
-  <<: *default
-
-test-3.7:
-  image: python:3.7-slim-buster
   <<: *default

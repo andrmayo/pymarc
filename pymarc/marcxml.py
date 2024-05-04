@@ -11,7 +11,7 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler, feature_namespaces
 import xml.etree.ElementTree as ET
 
-from pymarc import Field, MARC8ToUnicode, Record
+from pymarc import Field, MARC8ToUnicode, Record, Indicators
 
 
 XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
@@ -60,7 +60,7 @@ class XmlHandler(ContentHandler):
             tag = attrs.getValue((None, "tag"))
             ind1 = attrs.get((None, "ind1"), " ")
             ind2 = attrs.get((None, "ind2"), " ")
-            self._field = Field(tag, [ind1, ind2])
+            self._field = Field(tag, Indicators(ind1, ind2))
         elif element == "subfield":
             self._subfield_code = attrs[(None, "code")]
 
@@ -179,8 +179,8 @@ def record_to_xml_node(record, quiet=False, namespace=False):
             control_field.text = translate(field.data)
         else:
             data_field = ET.SubElement(root, "datafield")
-            data_field.set("ind1", field.indicators[0])
-            data_field.set("ind2", field.indicators[1])
+            data_field.set("ind1", field.indicators.first)
+            data_field.set("ind2", field.indicators.second)
             data_field.set("tag", field.tag)
             for subfield in field:
                 data_subfield = ET.SubElement(data_field, "subfield")

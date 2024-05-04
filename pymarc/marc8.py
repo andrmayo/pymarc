@@ -136,7 +136,7 @@ class MARC8ToUnicode:
                 # conditional check if string longer than pos+3 because of malformed marc8 string
                 if len(marc8_string) < pos + 3:
                     sys.stderr.write(
-                        f"Multi-byte position {pos+3} exceeds length of marc8 string {len(marc8_string)}\n"
+                        f"Multi-byte position {pos + 3} exceeds length of marc8 string {len(marc8_string)}\n"
                     )
                     code_point = 32  # Sets last character as a blank string
                 else:

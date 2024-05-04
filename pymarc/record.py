@@ -31,6 +31,7 @@ from pymarc.field import (
     RawField,
     Subfield,
     map_marc8_field,
+    Indicators,
 )
 from pymarc.leader import Leader
 from pymarc.marc8 import marc8_to_unicode
@@ -51,7 +52,7 @@ class Record:
 
         field = Field(
             tag = '245',
-            indicators = ['0','1'],
+            indicators = Indicators('0','1'),
             subfields = [
                 Subfield(code='a', value='The pragmatic programmer : '),
                 Subfield(code='b', value='from journeyman to master /'),
@@ -127,7 +128,7 @@ class Record:
             # returns None if 999 not in record.
             record.get('999')
             # returns the default if 999 not in record.
-            record.get('999', Field(tag="999", indicators=[" ", " "]))
+            record.get('999', Field(tag="999", indicators=Indicators(" ", " ")))
 
 
         """
@@ -403,13 +404,13 @@ class Record:
                 if to_unicode:
                     field = Field(
                         tag=entry_tag,
-                        indicators=[first_indicator, second_indicator],
+                        indicators=Indicators(first_indicator, second_indicator),
                         subfields=subfields,
                     )
                 else:
                     field = RawField(
                         tag=entry_tag,
-                        indicators=[first_indicator, second_indicator],
+                        indicators=Indicators(first_indicator, second_indicator),
                         subfields=subfields,
                     )
             self.add_field(field)

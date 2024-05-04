@@ -95,16 +95,16 @@ Se você é novo nos campos MARC  [Understanding MARC](http://www.loc.gov/marc/u
 Aqui está um exemplo de como criar um registro, e escrevê-lo em um arquivo.
 
 ```python
-from pymarc import Record, Field
+from pymarc import Record, Field, Subfield, Indicators
 record = Record()
 record.add_field(
     Field(
         tag = '245',
-        indicators = ['0','1'],
+        indicators = Indicators('0','1'),
         subfields = [
-            'a', 'The pragmatic programmer : ',
-            'b', 'from journeyman to master /',
-            'c', 'Andrew Hunt, David Thomas.'
+            Subfield(code='a', value='The pragmatic programmer : '),
+            Subfield(code='b', value='from journeyman to master /'),
+            Subfield(code='c', value='Andrew Hunt, David Thomas.')
         ]))
 with open('file.dat', 'wb') as out:
     out.write(record.as_marc())
