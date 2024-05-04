@@ -13,7 +13,7 @@ from io import IOBase, BytesIO, StringIO
 from typing import Callable, BinaryIO, IO, Iterator, Union
 
 from pymarc.constants import END_OF_RECORD
-from pymarc import Record, Field, Subfield
+from pymarc import Record, Field, Subfield, Indicators
 from pymarc import exceptions
 
 
@@ -255,7 +255,9 @@ class JSONReader(Reader):
                     for code, value in sub.items():
                         subfields.append(Subfield(code=code, value=value))
                 fld = Field(
-                    tag=k, subfields=subfields, indicators=[v["ind1"], v["ind2"]]
+                    tag=k,
+                    subfields=subfields,
+                    indicators=Indicators(v["ind1"], v["ind2"]),
                 )
             else:
                 fld = Field(tag=k, data=v)

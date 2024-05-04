@@ -18,6 +18,7 @@ from pymarc import (
     Record,
     marc8_to_unicode,
     Subfield,
+    Indicators,
 )
 
 
@@ -121,7 +122,7 @@ class MARC8Test(TestCase):
     def test_writing_unicode(self):
         record = Record()
         record.add_field(
-            Field("245", ["1", "0"], [Subfield(code="a", value=chr(0x1234))])
+            Field("245", Indicators("1", "0"), [Subfield(code="a", value=chr(0x1234))])
         )
         record.leader = "         a              "
         writer = MARCWriter(open("test/foo", "wb"))

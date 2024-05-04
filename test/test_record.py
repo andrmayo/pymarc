@@ -11,7 +11,7 @@ from pymarc.exceptions import (
     MissingLinkedFields,
     RecordLeaderInvalid,
 )
-from pymarc.field import Field, Subfield
+from pymarc.field import Field, Subfield, Indicators
 from pymarc.reader import MARCReader
 from pymarc.record import Record
 
@@ -21,7 +21,7 @@ class RecordTest(unittest.TestCase):
         record = Record()
         field = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[
                 Subfield(code="a", value="Python"),
                 Subfield(code="c", value="Guido"),
@@ -34,7 +34,7 @@ class RecordTest(unittest.TestCase):
         record = Record()
         field = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[
                 Subfield(code="a", value="Python"),
                 Subfield(code="c", value="Guido"),
@@ -55,7 +55,7 @@ class RecordTest(unittest.TestCase):
         record = Record()
         title = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[
                 Subfield(code="a", value="Python"),
                 Subfield(code="c", value="Guido"),
@@ -69,7 +69,7 @@ class RecordTest(unittest.TestCase):
         record = Record()
         title = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[
                 Subfield(code="a", value="Python"),
                 Subfield(code="c", value="Guido"),
@@ -87,13 +87,13 @@ class RecordTest(unittest.TestCase):
         record = Record()
         subject1 = Field(
             tag="650",
-            indicators=["", "0"],
+            indicators=Indicators("", "0"),
             subfields=[Subfield(code="a", value="Programming Language")],
         )
         record.add_field(subject1)
         subject2 = Field(
             tag="650",
-            indicators=["", "0"],
+            indicators=Indicators("", "0"),
             subfields=[Subfield(code="a", value="Object Oriented")],
         )
         record.add_field(subject2)
@@ -107,13 +107,13 @@ class RecordTest(unittest.TestCase):
         record = Record()
         subject1 = Field(
             tag="650",
-            indicators=["", "0"],
+            indicators=Indicators("", "0"),
             subfields=[Subfield(code="a", value="Programming Language")],
         )
         record.add_field(subject1)
         subject2 = Field(
             tag="651",
-            indicators=["", "0"],
+            indicators=Indicators("", "0"),
             subfields=[Subfield(code="a", value="Object Oriented")],
         )
         record.add_field(subject2)
@@ -124,7 +124,7 @@ class RecordTest(unittest.TestCase):
         record = Record()
         t1 = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[
                 Subfield(code="6", value="880-01"),
                 Subfield(code="a", value="Rū Harison no wārudo myūjikku nyūmon"),
@@ -133,7 +133,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(t1)
         t2 = Field(
             tag="880",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[
                 Subfield(code="6", value="245-01"),
                 Subfield(code="a", value="ルー・ハリソンのワールドミュージック入門"),
@@ -142,7 +142,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(t2)
         pd1 = Field(
             tag="260",
-            indicators=["0", "2"],
+            indicators=Indicators("0", "2"),
             subfields=[
                 Subfield(code="6", value="880-02"),
                 Subfield(code="a", value="Tōkyō"),
@@ -151,7 +151,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(pd1)
         pd2 = Field(
             tag="880",
-            indicators=["0", "2"],
+            indicators=Indicators("0", "2"),
             subfields=[
                 Subfield(code="6", value="260-02"),
                 Subfield(code="a", value="東京"),
@@ -165,7 +165,7 @@ class RecordTest(unittest.TestCase):
         record = Record()
         t1 = Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=Indicators("1", "0"),
             subfields=[
                 Subfield(code="6", value="880-01"),
                 Subfield(code="a", value="Rū Harison no wārudo myūjikku nyūmon"),
@@ -192,7 +192,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "245",
-                ["0", "1"],
+                indicators=Indicators("0", "1"),
                 subfields=[
                     Subfield(code="a", value="Foo :"),
                     Subfield(code="b", value="bar"),
@@ -203,7 +203,11 @@ class RecordTest(unittest.TestCase):
 
         record = Record()
         record.add_field(
-            Field("245", ["0", "1"], subfields=[Subfield(code="a", value="Farghin")])
+            Field(
+                "245",
+                indicators=Indicators("0", "1"),
+                subfields=[Subfield(code="a", value="Farghin")],
+            )
         )
         self.assertEqual(record.title, "Farghin")
 
@@ -213,7 +217,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "222",
-                ["", ""],
+                indicators=Indicators("", ""),
                 subfields=[
                     Subfield(code="a", value="Foo :"),
                     Subfield(code="b", value="bar"),
@@ -224,13 +228,19 @@ class RecordTest(unittest.TestCase):
 
         record = Record()
         record.add_field(
-            Field("222", ["", ""], subfields=[Subfield(code="a", value="Farghin")])
+            Field(
+                "222",
+                Indicators("", ""),
+                subfields=[Subfield(code="a", value="Farghin")],
+            )
         )
         self.assertEqual(record.issn_title, "Farghin")
 
         record = Record()
         record.add_field(
-            Field("222", ["", ""], subfields=[Subfield(code="b", value="bar")])
+            Field(
+                "222", Indicators("", ""), subfields=[Subfield(code="b", value="bar")]
+            )
         )
         self.assertEqual(record.issn_title, None)
 
@@ -240,7 +250,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "020",
-                ["0", "1"],
+                Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="9781416566113")],
             )
         )
@@ -250,7 +260,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "020",
-                ["0", "1"],
+                Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="978-1416566113")],
             )
         )
@@ -260,7 +270,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "020",
-                ["0", "1"],
+                Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="ISBN-978-1416566113")],
             )
         )
@@ -270,7 +280,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "020",
-                [" ", " "],
+                Indicators(" ", " "),
                 subfields=[Subfield(code="a", value="0456789012 (reel 1)")],
             )
         )
@@ -280,7 +290,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "020",
-                [" ", " "],
+                Indicators(" ", " "),
                 subfields=[Subfield(code="a", value="006073132X")],
             )
         )
@@ -292,7 +302,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 tag="022",
-                indicators=["0", ""],
+                indicators=Indicators("0", ""),
                 subfields=[Subfield(code="a", value="0395-2037")],
             )
         )
@@ -304,7 +314,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 tag="022",
-                indicators=["0", ""],
+                indicators=Indicators("0", ""),
                 subfields=[Subfield(code="l", value="0395-2037")],
             )
         )
@@ -322,7 +332,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "100",
-                ["1", "0"],
+                Indicators("1", "0"),
                 subfields=[
                     Subfield(code="a", value="Bletch, Foobie,"),
                     Subfield(code="d", value="1979-1981."),
@@ -335,7 +345,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "130",
-                ["0", " "],
+                Indicators("0", " "),
                 subfields=[
                     Subfield(code="a", value="Bible."),
                     Subfield(code="l", value="Python."),
@@ -350,7 +360,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "130",
-                ["0", " "],
+                Indicators("0", " "),
                 subfields=[
                     Subfield(code="a", value="Tosefta."),
                     Subfield(code="l", value="English."),
@@ -364,7 +374,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "240",
-                ["1", "4"],
+                Indicators("1", "4"),
                 subfields=[
                     Subfield(code="a", value="The Pickwick papers."),
                     Subfield(code="l", value="French."),
@@ -382,7 +392,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "630",
-                ["0", " "],
+                Indicators("0", " "),
                 subfields=[
                     Subfield(code="a", value="Tosefta."),
                     Subfield(code="l", value="English."),
@@ -393,7 +403,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "730",
-                ["0", " "],
+                Indicators("0", " "),
                 subfields=[
                     Subfield(code="a", value="Tosefta."),
                     Subfield(code="l", value="English."),
@@ -404,7 +414,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "600",
-                ["1", "0"],
+                Indicators("1", "0"),
                 subfields=[Subfield(code="a", value="Le Peu, Pepe.")],
             )
         )
@@ -423,7 +433,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "730",
-                [0, " "],
+                Indicators("0", " "),
                 subfields=[
                     Subfield(code="a", value="Tosefta."),
                     Subfield(code="l", value="English."),
@@ -434,14 +444,14 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "700",
-                ["1", "0"],
+                Indicators("1", "0"),
                 subfields=[Subfield(code="a", value="Le Peu, Pepe.")],
             )
         )
         record.add_field(
             Field(
                 "245",
-                ["0", "0"],
+                Indicators("0", "0"),
                 subfields=[Subfield(code="a", value="Le Peu's Tosefa.")],
             )
         )
@@ -460,7 +470,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "300",
-                ["\\", ""],
+                Indicators("\\", ""),
                 subfields=[
                     Subfield(code="a", value="1 photographic print :"),
                     Subfield(code="b", value="gelatin silver ;"),
@@ -471,7 +481,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "300",
-                ["\\", ""],
+                Indicators("\\", ""),
                 subfields=[
                     Subfield(code="a", value="FOO"),
                     Subfield(code="b", value="BAR"),
@@ -494,7 +504,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "040",
-                [" ", " "],
+                Indicators(" ", " "),
                 subfields=[
                     Subfield(code="a", value="DLC"),
                     Subfield(code="c", value="DLC"),
@@ -504,7 +514,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "852",
-                [" ", " "],
+                Indicators(" ", " "),
                 subfields=[
                     Subfield(code="a", value="American Institute of Physics."),
                     Subfield(code="b", value="Niels Bohr Library and Archives."),
@@ -515,7 +525,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "852",
-                ["0", "1"],
+                Indicators("0", "1"),
                 subfields=[
                     Subfield(code="a", value="CtY"),
                     Subfield(code="b", value="Main"),
@@ -536,7 +546,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "500",
-                [" ", " "],
+                Indicators(" ", " "),
                 subfields=[
                     Subfield(
                         code="a",
@@ -556,7 +566,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "260",
-                [" ", " "],
+                Indicators(" ", " "),
                 subfields=[
                     Subfield(code="a", value="Paris :"),
                     Subfield(code="b", value="Gauthier-Villars ;"),
@@ -573,7 +583,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "264",
-                [" ", "1"],
+                Indicators(" ", "1"),
                 subfields=[
                     Subfield(code="a", value="London :"),
                     Subfield(code="b", value="Penguin,"),
@@ -589,7 +599,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "260",
-                [" ", " "],
+                Indicators(" ", " "),
                 subfields=[
                     Subfield(code="a", value="Paris :"),
                     Subfield(code="b", value="Gauthier-Villars ;"),
@@ -606,7 +616,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 "264",
-                [" ", "1"],
+                Indicators(" ", "1"),
                 subfields=[
                     Subfield(code="a", value="London :"),
                     Subfield(code="b", value="Penguin,"),
@@ -619,10 +629,14 @@ class RecordTest(unittest.TestCase):
     def test_alphatag(self):
         record = Record()
         record.add_field(
-            Field("CAT", [" ", " "], subfields=[Subfield(code="a", value="foo")])
+            Field(
+                "CAT", Indicators(" ", " "), subfields=[Subfield(code="a", value="foo")]
+            )
         )
         record.add_field(
-            Field("CAT", [" ", " "], subfields=[Subfield(code="b", value="bar")])
+            Field(
+                "CAT", Indicators(" ", " "), subfields=[Subfield(code="b", value="bar")]
+            )
         )
         fields = record.get_fields("CAT")
         self.assertEqual(len(fields), 2)
@@ -637,10 +651,18 @@ class RecordTest(unittest.TestCase):
             r1 = next(MARCReader(fh))
             r2 = deepcopy(r1)
             r1.add_field(
-                Field("999", [" ", " "], subfields=[Subfield(code="a", value="foo")])
+                Field(
+                    "999",
+                    Indicators(" ", " "),
+                    subfields=[Subfield(code="a", value="foo")],
+                )
             )
             r2.add_field(
-                Field("999", [" ", " "], subfields=[Subfield(code="a", value="bar")])
+                Field(
+                    "999",
+                    Indicators(" ", " "),
+                    subfields=[Subfield(code="a", value="bar")],
+                )
             )
             self.assertEqual(r1["999"]["a"], "foo")
             self.assertEqual(r2["999"]["a"], "bar")
@@ -654,7 +676,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 tag="245",
-                indicators=["0", "1"],
+                indicators=Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
@@ -685,7 +707,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 tag="245",
-                indicators=["0", "1"],
+                indicators=Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
@@ -698,7 +720,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 tag="245",
-                indicators=["0", "1"],
+                indicators=Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
@@ -711,7 +733,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 tag="245",
-                indicators=["0", "1"],
+                indicators=Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
@@ -724,7 +746,7 @@ class RecordTest(unittest.TestCase):
         record.add_field(
             Field(
                 tag="245",
-                indicators=["0", "1"],
+                indicators=Indicators("0", "1"),
                 subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )

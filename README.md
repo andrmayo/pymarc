@@ -126,13 +126,13 @@ convert a legacy list of strings into a list of `Subfield`s.*
 Here's an example of creating a record and writing it out to a file.
 
 ```python
-from pymarc import Record, Field, Subfield
+from pymarc import Record, Field, Subfield, Indicators
 
 record = Record()
 record.add_field(
     Field(
         tag='245',
-        indicators=['0', '1'],
+        indicators=Indicators('0', '1'),
         subfields=[
             Subfield(code='a', value='The pragmatic programmer : '),
             Subfield(code='b', value='from journeyman to master /'),

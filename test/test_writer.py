@@ -110,12 +110,16 @@ class JSONWriterTest(unittest.TestCase):
             writer = pymarc.JSONWriter(file_handle)
             record = pymarc.Record()
             record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
+                pymarc.Field(
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
+                )
             )
             record.add_field(
                 pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -210,27 +214,16 @@ class JSONWriterTest(unittest.TestCase):
                 pymarc.Field("008", data="090227s2009    mau                 chi d")
             )
             record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
-            )
-            record.add_field(
                 pymarc.Field(
-                    "245",
-                    ["0", "0"],
-                    [
-                        pymarc.Subfield(code="a", value="Foo /"),
-                        pymarc.Subfield(code="c", value="by me."),
-                    ],
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
                 )
             )
-            writer.write(record)
-            record = pymarc.Record()
-            record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
-            )
             record.add_field(
                 pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -241,8 +234,27 @@ class JSONWriterTest(unittest.TestCase):
             record = pymarc.Record()
             record.add_field(
                 pymarc.Field(
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
+                )
+            )
+            record.add_field(
+                pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
+                    [
+                        pymarc.Subfield(code="a", value="Foo /"),
+                        pymarc.Subfield(code="c", value="by me."),
+                    ],
+                )
+            )
+            writer.write(record)
+            record = pymarc.Record()
+            record.add_field(
+                pymarc.Field(
+                    "245",
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -264,7 +276,7 @@ class MARCWriterTest(unittest.TestCase):
         writer = pymarc.MARCWriter(file_handle)
         record = pymarc.Record()
         field = pymarc.Field(
-            "245", ["0", "0"], [pymarc.Subfield(code="a", value="foo")]
+            "245", pymarc.Indicators("0", "0"), [pymarc.Subfield(code="a", value="foo")]
         )
         record.add_field(field)
         writer.write(record)
@@ -331,12 +343,16 @@ class TextWriterTest(unittest.TestCase):
             writer = pymarc.TextWriter(file_handle)
             record = pymarc.Record()
             record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
+                pymarc.Field(
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
+                )
             )
             record.add_field(
                 pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -372,27 +388,16 @@ class TextWriterTest(unittest.TestCase):
                 pymarc.Field("008", data="090227s2009    mau                 chi d")
             )
             record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
-            )
-            record.add_field(
                 pymarc.Field(
-                    "245",
-                    ["0", "0"],
-                    [
-                        pymarc.Subfield(code="a", value="Foo /"),
-                        pymarc.Subfield(code="c", value="by me."),
-                    ],
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
                 )
             )
-            writer.write(record)
-            record = pymarc.Record()
-            record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
-            )
             record.add_field(
                 pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -403,8 +408,27 @@ class TextWriterTest(unittest.TestCase):
             record = pymarc.Record()
             record.add_field(
                 pymarc.Field(
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
+                )
+            )
+            record.add_field(
+                pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
+                    [
+                        pymarc.Subfield(code="a", value="Foo /"),
+                        pymarc.Subfield(code="c", value="by me."),
+                    ],
+                )
+            )
+            writer.write(record)
+            record = pymarc.Record()
+            record.add_field(
+                pymarc.Field(
+                    "245",
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -514,12 +538,16 @@ class XMLWriterTest(unittest.TestCase):
             writer = pymarc.XMLWriter(file_handle)
             record = pymarc.Record()
             record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
+                pymarc.Field(
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
+                )
             )
             record.add_field(
                 pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -575,27 +603,16 @@ class XMLWriterTest(unittest.TestCase):
                 pymarc.Field("008", data="090227s2009    mau                 chi d")
             )
             record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
-            )
-            record.add_field(
                 pymarc.Field(
-                    "245",
-                    ["0", "0"],
-                    [
-                        pymarc.Subfield(code="a", value="Foo /"),
-                        pymarc.Subfield(code="c", value="by me."),
-                    ],
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
                 )
             )
-            writer.write(record)
-            record = pymarc.Record()
-            record.add_field(
-                pymarc.Field("100", ["0", "0"], [pymarc.Subfield(code="a", value="me")])
-            )
             record.add_field(
                 pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),
@@ -606,8 +623,27 @@ class XMLWriterTest(unittest.TestCase):
             record = pymarc.Record()
             record.add_field(
                 pymarc.Field(
+                    "100",
+                    pymarc.Indicators("0", "0"),
+                    [pymarc.Subfield(code="a", value="me")],
+                )
+            )
+            record.add_field(
+                pymarc.Field(
                     "245",
-                    ["0", "0"],
+                    pymarc.Indicators("0", "0"),
+                    [
+                        pymarc.Subfield(code="a", value="Foo /"),
+                        pymarc.Subfield(code="c", value="by me."),
+                    ],
+                )
+            )
+            writer.write(record)
+            record = pymarc.Record()
+            record.add_field(
+                pymarc.Field(
+                    "245",
+                    pymarc.Indicators("0", "0"),
                     [
                         pymarc.Subfield(code="a", value="Foo /"),
                         pymarc.Subfield(code="c", value="by me."),

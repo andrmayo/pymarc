@@ -5,7 +5,6 @@
 # file.
 
 """The pymarc field file."""
-
 import logging
 from collections import defaultdict
 from typing import List, Optional, DefaultDict, NamedTuple, Iterator, Dict
@@ -16,6 +15,13 @@ from pymarc.marc8 import marc8_to_unicode
 Subfield = NamedTuple("Subfield", [("code", str), ("value", str)])
 
 
+class Indicators(NamedTuple):
+    """A named tuple representing the indicators for a non-control field."""
+
+    first: str
+    second: str
+
+
 class Field:
     """Field() pass in the field tag, indicators and subfields for the tag.
 
@@ -23,7 +29,7 @@ class Field:
 
         field = Field(
             tag = '245',
-            indicators = ['0','1'],
+            indicators = Indicators('0','1'),
             subfields = [
                 Subfield(code='a', value='The pragmatic programmer : '),
                 Subfield(code='b', value='from journeyman to master /'),
@@ -43,7 +49,7 @@ class Field:
     def __init__(
         self,
         tag: str,
-        indicators: Optional[List[str]] = None,
+        indicators: Optional[Indicators] = None,
         subfields: Optional[List[Subfield]] = None,
         data: Optional[str] = None,
     ):
@@ -61,8 +67,20 @@ class Field:
                 """
             )
 
+        if (
+            indicators
+            and isinstance(indicators, (list, tuple))
+            and len(indicators) != 2
+        ):
+            raise ValueError(
+                """The indicators input no longer accepts an iterable of arbitrary length. Use
+                   the Indicators() named tuple instead. Please consult the documentation
+                   for details.
+                """
+            )
+
         self.subfields: List[Subfield] = []
-        self.indicators: List[str] = []
+        self.indicators: Optional[Indicators] = None
         self.data: Optional[str] = None
         self.control_field: bool = False
 
@@ -72,7 +90,16 @@ class Field:
             self.data = data
         else:
             self.subfields = subfields or []
-            self.indicators = [str(x) for x in (indicators or [])]
+            if not indicators:
+                self.indicators = Indicators(" ", " ")
+            elif (
+                indicators
+                and isinstance(indicators, (list, tuple))
+                and len(indicators) == 2
+            ):
+                self.indicators = Indicators(*indicators)
+            else:
+                self.indicators = indicators
 
     @classmethod
     def convert_legacy_subfields(cls, subfields: List[str]) -> List[Subfield]:
@@ -135,7 +162,7 @@ class Field:
             _ind = []
             _subf = []
 
-            for indicator in self.indicators:
+            for indicator in self.indicators:  # type: ignore
                 if indicator in (" ", "\\"):
                     _ind.append("\\")
                 else:
@@ -387,23 +414,39 @@ class Field:
 
     @property
     def indicator1(self) -> str:
-        """Indicator 1."""
-        return self.indicators[0]
+        """Indicator 1.
+
+        Returns an empty string if this is a control field.
+        """
+        return self.indicators.first if self.indicators else ""
 
     @indicator1.setter
     def indicator1(self, value: str) -> None:
-        """Indicator 1 (setter)."""
-        self.indicators[0] = value
+        """Indicator 1 (setter).
+
+        If this is a control field, this is a NoOp.
+        """
+        if self.control_field:
+            self.indicators = None
+        self.indicators = self.indicators._replace(first=value)  # type: ignore
 
     @property
     def indicator2(self) -> str:
-        """Indicator 2."""
-        return self.indicators[1]
+        """Indicator 2.
+
+        Returns an empty string if this is  a control field.
+        """
+        return self.indicators.second if self.indicators else ""
 
     @indicator2.setter
     def indicator2(self, value: str) -> None:
-        """Indicator 2 (setter)."""
-        self.indicators[1] = value
+        """Indicator 2 (setter).
+
+        If this is a control field, this is a NoOp.
+        """
+        if self.control_field:
+            self.indicators = None
+        self.indicators = self.indicators._replace(second=value)  # type: ignore
 
 
 class RawField(Field):

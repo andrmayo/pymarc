@@ -51,7 +51,7 @@ class JsonTest(unittest.TestCase):
         self._record = pymarc.Record()
         field = pymarc.Field(
             tag="245",
-            indicators=["1", "0"],
+            indicators=pymarc.Indicators("1", "0"),
             subfields=[
                 pymarc.Subfield(code="a", value="Python"),
                 pymarc.Subfield(code="c", value="Guido"),
