@@ -7,13 +7,14 @@
 # file.
 
 import re
+import tempfile
 import unittest
 
 import pymarc
 from pymarc import exceptions
 
 
-class MARCReaderBaseTest(object):
+class MARCReaderBaseTest:
     def test_iterator(self):
         count = 0
         for record in self.reader:
@@ -237,11 +238,90 @@ class TestTruncatedData(unittest.TestCase):
         )
 
 
+class MARCMakerReaderTest(unittest.TestCase, MARCReaderBaseTest):
+    """Tests MARCMakerReader which provides iterator based access to a text file."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.records = [
+            str(record) for record in pymarc.MARCReader(open("test/test.dat", "rb"))
+        ]
+
+    def setUp(self):
+        self.reader = pymarc.MARCMakerReader("\n".join(self.records))
+
+    def test_round_trip(self):
+        for index, record in enumerate(self.reader):
+            self.assertEqual(
+                str(record), self.records[index], "records should be identical"
+            )
+
+    def test_parse_line_leader(self):
+        leader = self.reader._parse_line("=LDR  00755cam  22002414a 4500")
+        self.assertEqual(str(leader), "00755cam  22002414a 4500")
+
+    def test_parse_line_control_field(self):
+        field = self.reader._parse_line("=008  010314s1999fr||||||||||||||||fre")
+        self.assertEqual(field.tag, "008")
+        self.assertEqual(field.data, "010314s1999fr||||||||||||||||fre")
+
+    def test_parse_line_data_field(self):
+        field = self.reader._parse_line("=028  01$aSTMA 8007$bTamla Motown Records")
+        self.assertEqual(field.tag, "028")
+        self.assertEqual(field.indicator1, "0")
+        self.assertEqual(field.indicator2, "1")
+        self.assertEqual(field["a"], "STMA 8007")
+        self.assertEqual(field["b"], "Tamla Motown Records")
+
+    def test_parse_line_startswith_equal_sign(self):
+        with self.assertRaises(ValueError) as cm:
+            self.reader._parse_line("028  01$aSTMA 8007$bTamla Motown Records")
+        self.assertEqual(str(cm.exception), 'Line should start with a "=".')
+
+    def test_parse_line_spaces_separator(self):
+        with self.assertRaises(ValueError) as cm:
+            self.reader._parse_line("=028 01$aSTMA 8007$bTamla Motown Records")
+        self.assertEqual(
+            str(cm.exception),
+            "Tag should be separated from the rest of the field by two spaces.",
+        )
+
+    def test_invalid_lines(self):
+        lines = [
+            "=LDR 00755cam  22002414a 4500",
+            "LDR  00755cam  22002414a 4500",
+            "=008",
+            "=009 00755cam",
+            "=999",
+        ]
+        for line in lines:
+            with self.subTest(line=line):
+                reader = pymarc.MARCMakerReader(line)
+                with self.assertRaises(pymarc.exceptions.PymarcException) as cm:
+                    next(reader)
+                self.assertEqual(str(cm.exception), f'Unable to parse line "{line}"')
+
+    def test_open_from_file(self):
+        for encoding in ["utf-8", "ISO-8859-1", None]:
+            with self.subTest(encoding=encoding):
+                with tempfile.NamedTemporaryFile("w", encoding=encoding) as tmp:
+                    tmp.write("\n".join(self.records))
+                    tmp.flush()
+                    reader = pymarc.MARCMakerReader(tmp.name, encoding=encoding)
+                record = next(reader)
+                self.assertEqual(
+                    str(record), self.records[0], "records should be identical"
+                )
+
+
 def suite():
     file_suite = unittest.makeSuite(MARCReaderFileTest, "test")
     string_suite = unittest.makeSuite(MARCReaderStringTest, "test")
     permissive_file_suite = unittest.makeSuite(MARCReaderFilePermissiveTest, "test")
-    test_suite = unittest.TestSuite((file_suite, string_suite, permissive_file_suite))
+    marcmaker_suite = unittest.makeSuite(MARCMakerReaderTest, "test")
+    test_suite = unittest.TestSuite(
+        (file_suite, string_suite, permissive_file_suite, marcmaker_suite)
+    )
     return test_suite
 
 

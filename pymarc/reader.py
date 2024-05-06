@@ -10,10 +10,10 @@ import sys
 import json
 
 from io import IOBase, BytesIO, StringIO
-from typing import Callable, BinaryIO, IO, Iterator, Union
+from typing import Callable, BinaryIO, IO, Iterator, Union, List
 
 from pymarc.constants import END_OF_RECORD
-from pymarc import Record, Field, Subfield, Indicators
+from pymarc import Record, Field, Subfield, Indicators, Leader
 from pymarc import exceptions
 
 
@@ -263,3 +263,87 @@ class JSONReader(Reader):
                 fld = Field(tag=k, data=v)
             rec.add_field(fld)
         return rec
+
+
+class MARCMakerReader(Reader):
+    r"""MARCMaker Reader.
+
+    Converts a MARCMaker textual representation of a Marc 21 record into a pymarc Record.
+    see :func:`Record.__str__() <pymarc.record.Record.__str__>` for more information.
+
+    Simple usage:
+
+    .. code-block:: python
+
+        from pymarc import MARCMakerReader
+
+        ## pass in a file object
+        reader = MARCMakerReader(open('file.mrk', 'r'))
+        for record in reader:
+            ...
+
+        ## pass a string
+        reader = MARCReader("=LDR xxx\n=022  ##$a0000-0000\n\n=LDR yyy")
+        for record in reader:
+            ...
+    """
+
+    def __init__(self, target: Union[bytes, str], encoding: str = "utf-8") -> None:
+        """The constructor to which you can pass either a str or a file-like object."""
+        if isinstance(target, IOBase):
+            file_handle = target
+        else:
+            if isinstance(target, str) and os.path.exists(target):
+                file_handle = open(target, mode="r", encoding=encoding)
+            else:
+                file_handle = StringIO(target)  # type: ignore
+        file_content = file_handle.read()
+        file_handle.close()
+        self.records = [record for record in file_content.split("\n\n")]
+        self.iter = iter(self.records)
+
+    def _parse_line(self, line: str) -> Union[Leader, Field]:
+        """Parse a MARCMaker line.
+
+        A line looks like
+            =LDR  00755cam  22002414a 4500
+            or
+            =008  010314s1999fr||||||||||||||||fre
+            or
+            =028  00$aSTMA 8007$bTamla Motown Records
+        """
+        if line[0] != "=":
+            raise ValueError('Line should start with a "=".')
+        if line[4:6] != "  ":
+            raise ValueError(
+                "Tag should be separated from the rest of the field by two spaces."
+            )
+        tag = line[1:4]
+        data = line[6:]
+        if tag == "LDR":
+            return Leader(data)
+        elif tag < "010":
+            return Field(tag, data=data)
+        indicators = Indicators(data[0], data[1])
+        # the first $ is ignored to avoid an empty list item after the split
+        subfields: List[Subfield] = [
+            Subfield(subfield[:1], subfield[1:]) for subfield in data[3:].split("$")
+        ]
+        return Field(tag, indicators=indicators, subfields=subfields)
+
+    def __next__(self) -> Iterator:
+        """Iterate over a record's line to parse its fields."""
+        record_txt = next(self.iter)
+        record = Record()
+        for line in record_txt.splitlines():
+            try:
+                field = self._parse_line(line)
+            except Exception as exc:
+                raise exceptions.PymarcException(
+                    f'Unable to parse line "{line}"'
+                ) from exc
+            if isinstance(field, Leader):
+                record.leader = field
+            else:
+                record.add_field(field)
+        return record

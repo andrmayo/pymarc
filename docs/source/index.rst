@@ -179,8 +179,8 @@ it out again:
     with open('file.dat', 'wb') as out:
        out.write(record.as_marc())
 
-JSON and XML
-~~~~~~~~~~~~
+JSON, XML and Text
+~~~~~~~~~~~~~~~~~~
 
 If you find yourself using MARC data a fair bit, and distributing it,
 you may make other developers a bit happier by using the JSON or XML
@@ -189,6 +189,8 @@ that the UTF8 character encoding is used, rather than the frustratingly
 archaic MARC8 encoding. Also they will be able to use JSON and XML tools
 to get at the data they want instead of some crazy MARC processing
 library like, ahem, pymarc.
+
+MARCMaker is also supported as a reading and writing format.
 
 
 API Docs
