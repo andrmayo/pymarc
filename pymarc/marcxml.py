@@ -11,7 +11,7 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler, feature_namespaces
 import xml.etree.ElementTree as ET
 
-from pymarc import Field, MARC8ToUnicode, Record, Indicators
+from pymarc import Leader, Field, MARC8ToUnicode, Record, Indicators
 
 
 XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
@@ -79,7 +79,7 @@ class XmlHandler(ContentHandler):
             self.process_record(self._record)
             self._record = None
         elif element == "leader":
-            self._record.leader = text
+            self._record.leader = Leader(text)
         elif element == "controlfield":
             self._field.data = text
             self._record.add_field(self._field)
