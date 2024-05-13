@@ -14,3 +14,5 @@ Pipfile.lock
 .vscode
 .idea
 venv
+.coverage
+coverage.xml
