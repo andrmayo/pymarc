@@ -1,28 +1,50 @@
-.default: &default
+stages:
+  - linting
+  - tests
+
+default:
+  # default image for tests and linting, should be the minimum supported python version
+  image: python:3.7-slim
+
+# linting is only done once with default image
+lint:
+  stage: linting
   before_script:
     - pip install -r requirements.dev.txt
   script:
     - black --check --diff .
     - flake8 .
     - mypy --ignore-missing-imports .
-    - python setup.py test
 
-test-3.12:
-  image: python:3.12-slim-bookworm
-  <<: *default
+# run tests and measure coverage with the default python version
+test-coverage:
+  stage: tests
+  before_script:
+    - pip install coverage
+  script:
+    - coverage run -m unittest discover
+    - coverage xml
+    - coverage report
+  # integrate coverage reports in GitLab 
+  # see https://docs.gitlab.com/ee/ci/testing/test_coverage_visualization.html
+  coverage: '/\d+\%\s*$/'
+  artifacts:
+    name: ${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    when: always
+    expire_in: 1 day
 
-test-3.11:
-  image: python:3.11-slim-buster
-  <<: *default
-
-test-3.10:
-  image: python:3.10-slim-buster
-  <<: *default
-
-test-3.9:
-  image: python:3.9-slim-buster
-  <<: *default
-
-test-3.8:
-  image: python:3.8-slim-buster
-  <<: *default
+# run tests on other supported python versions
+test-other-python-versions:
+  stage: tests
+  parallel:
+    matrix:
+      # keep this list in sync with the "Programming Language" classifiers excluding
+      # the python version used in the default image
+      - PYTHON_VERSION: ['3.8', '3.9', '3.10', '3.11', '3.12']
+  image: python:${PYTHON_VERSION}-slim
+  script:
+    - python -m unittest discover
