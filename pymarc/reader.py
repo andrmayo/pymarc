@@ -13,7 +13,7 @@ from io import IOBase, BytesIO, StringIO
 from typing import Callable, BinaryIO, IO, Iterator, Union, List
 
 from pymarc.constants import END_OF_RECORD
-from pymarc import Record, Field, Subfield, Indicators, Leader
+from pymarc import Field, Indicators, Leader, Record, Subfield
 from pymarc import exceptions
 
 
@@ -245,7 +245,7 @@ class JSONReader(Reader):
     def __next__(self) -> Iterator:
         jobj = next(self.iter)
         rec = Record()
-        rec.leader = jobj["leader"]
+        rec.leader = Leader(jobj["leader"])
         for field in jobj["fields"]:
             k, v = list(field.items())[0]
             if "subfields" in v and hasattr(v, "update"):

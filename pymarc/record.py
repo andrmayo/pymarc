@@ -301,13 +301,15 @@ class Record:
         pass in a chunk of MARC data to it.
         """
         # extract record leader
-        self.leader = marc[0:LEADER_LEN].decode("ascii")
+        leader = marc[0:LEADER_LEN].decode("ascii")
 
-        if len(self.leader) != LEADER_LEN:
+        if len(leader) != LEADER_LEN:
             raise RecordLeaderInvalid
 
-        if self.leader[9] == "a" or self.force_utf8:
+        if leader[9] == "a" or self.force_utf8:
             encoding = "utf-8"
+
+        self.leader = Leader(leader)
 
         # extract the byte offset where the record data starts
         base_address = int(marc[12:17])

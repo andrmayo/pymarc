@@ -6,7 +6,7 @@
 
 """From JSON to MARC21."""
 
-from pymarc import Field, Indicators, Record, JSONReader
+from pymarc import Leader, Field, Indicators, Record, JSONReader
 
 
 class JSONHandler:
@@ -25,7 +25,7 @@ class JSONHandler:
             self._record = Record()
             self.element(element_dict, "leader")
         elif name == "leader":
-            self._record.leader = element_dict[name]
+            self._record.leader = Leader(element_dict[name])
             self.element(element_dict, "fields")
         elif name == "fields":
             fields = iter(element_dict[name])

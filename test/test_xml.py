@@ -60,7 +60,7 @@ class XmlTest(unittest.TestCase):
         record2 = pymarc.parse_xml_to_array(BytesIO(xml))[0]
 
         # compare original and resulting record
-        self.assertEqual(record1.leader, record2.leader)
+        self.assertEqual(record1.leader.leader, record2.leader.leader)
 
         field1 = record1.get_fields()
         field2 = record2.get_fields()
@@ -101,8 +101,11 @@ class XmlTest(unittest.TestCase):
         fh.close()
 
     def test_bad_tag(self):
-        a = pymarc.parse_xml_to_array(open("test/bad_tag.xml"))
-        self.assertEqual(len(a), 1)
+        self.assertRaises(
+            pymarc.exceptions.RecordLeaderInvalid,
+            pymarc.parse_xml_to_array,
+            open("test/bad_tag.xml"),
+        )
 
 
 def suite():
