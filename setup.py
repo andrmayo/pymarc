@@ -8,7 +8,7 @@
 
 from setuptools import setup
 
-version = "5.2.0"
+version = "5.2.1"
 
 classifiers = """
 Intended Audience :: Education

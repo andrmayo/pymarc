@@ -132,6 +132,15 @@ class FieldTest(unittest.TestCase):
         self.assertEqual(self.field.indicator2, "1")
         self.assertEqual(self.field.indicators.second, "1")
 
+    def test_reassign_indicators(self):
+        self.field.indicators = (" ", "1")
+        self.assertEqual(self.field.indicator1, " ")
+        self.assertEqual(self.field.indicator2, "1")
+
+        self.field.indicators = ["1", " "]
+        self.assertEqual(self.field.indicator1, "1")
+        self.assertEqual(self.field.indicator2, " ")
+
     def test_subfields_created(self):
         subfields = self.field.subfields
         self.assertEqual(len(subfields), 2)

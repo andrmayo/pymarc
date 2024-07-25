@@ -7,7 +7,7 @@
 """The pymarc field file."""
 import logging
 from collections import defaultdict
-from typing import List, Optional, DefaultDict, NamedTuple, Iterator, Dict
+from typing import List, Optional, DefaultDict, NamedTuple, Iterator, Dict, Sequence
 
 from pymarc.constants import SUBFIELD_INDICATOR, END_OF_FIELD
 from pymarc.marc8 import marc8_to_unicode
@@ -44,7 +44,7 @@ class Field:
         field = Field(tag='001', data='fol05731351')
     """
 
-    __slots__ = ("tag", "data", "indicators", "subfields", "__pos", "control_field")
+    __slots__ = ("tag", "data", "_indicators", "subfields", "__pos", "control_field")
 
     def __init__(
         self,
@@ -67,20 +67,8 @@ class Field:
                 """
             )
 
-        if (
-            indicators
-            and isinstance(indicators, (list, tuple))
-            and len(indicators) != 2
-        ):
-            raise ValueError(
-                """The indicators input no longer accepts an iterable of arbitrary length. Use
-                   the Indicators() named tuple instead. Please consult the documentation
-                   for details.
-                """
-            )
-
         self.subfields: List[Subfield] = []
-        self.indicators: Optional[Indicators] = None
+        self._indicators: Optional[Indicators] = None
         self.data: Optional[str] = None
         self.control_field: bool = False
 
@@ -100,6 +88,27 @@ class Field:
                 self.indicators = Indicators(*indicators)
             else:
                 self.indicators = indicators
+
+    @property
+    def indicators(self) -> Optional[Indicators]:
+        """Return the field's indicators."""
+        return self._indicators
+
+    @indicators.setter
+    def indicators(self, value: Sequence) -> None:
+        """Set the field's indicators."""
+        if value and isinstance(value, (list, tuple)) and len(value) != 2:
+            raise ValueError(
+                """The indicators input no longer accepts an iterable of arbitrary length. Use
+                   the Indicators() named tuple instead. Please consult the documentation
+                   for details.
+                """
+            )
+        if value is not None:
+            if isinstance(value, Indicators):
+                self._indicators = value
+            else:
+                self._indicators = Indicators(*value)
 
     @classmethod
     def convert_legacy_subfields(cls, subfields: List[str]) -> List[Subfield]:
