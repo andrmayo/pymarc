@@ -105,7 +105,7 @@ class Record:
                 encoding=file_encoding,
             )
         elif force_utf8:
-            self.leader = self.leader[0:9] + "a" + self.leader[10:]
+            self.leader = Leader(self.leader[0:9] + "a" + self.leader[10:])
 
     def __str__(self) -> str:
         """Will return a prettified version of the record in MARCMaker format.

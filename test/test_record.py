@@ -14,6 +14,7 @@ from pymarc.exceptions import (
 from pymarc.field import Field, Subfield, Indicators
 from pymarc.reader import MARCReader
 from pymarc.record import Record
+from pymarc.leader import Leader
 
 
 class RecordTest(unittest.TestCase):
@@ -724,6 +725,7 @@ class RecordTest(unittest.TestCase):
                 subfields=[Subfield(code="a", value="The pragmatic programmer")],
             )
         )
+        self.assertTrue(isinstance(record.leader, Leader))
         transmission_format = record.as_marc()
         transmission_format_leader = transmission_format[0:24]
         self.assertEqual(transmission_format_leader, b"00067    a2200037   4500")
