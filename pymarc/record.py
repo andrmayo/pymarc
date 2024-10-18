@@ -82,6 +82,7 @@ class Record:
     def __init__(
         self,
         data: str = "",
+        fields: Optional[List[Field]] = None,
         to_unicode: bool = True,
         force_utf8: bool = False,
         hide_utf8_warnings: bool = False,
@@ -95,7 +96,9 @@ class Record:
         self.pos: int = 0
         self.force_utf8: bool = force_utf8
         self.to_unicode: bool = to_unicode
-        if len(data) > 0:
+        if fields:
+            self.fields = fields
+        elif len(data) > 0:
             self.decode_marc(
                 data,
                 to_unicode=to_unicode,
@@ -150,7 +153,7 @@ class Record:
             raise KeyError
 
         fields: List[Field] = self.get_fields(tag)
-        if len(fields) == 0:
+        if not fields:
             raise KeyError
 
         return fields[0]
@@ -162,10 +165,7 @@ class Record:
 
             '245' in record
         """
-        for f in self.fields:
-            if f.tag == tag:
-                return True
-        return False
+        return any(f.tag == tag for f in self.fields)
 
     def __iter__(self):
         self.__pos = 0
@@ -192,7 +192,7 @@ class Record:
         Optionally you can pass in multiple fields.
         """
         for f in fields:
-            if len(self.fields) == 0 or not f.tag.isdigit():
+            if not self.fields or not f.tag.isdigit():
                 self.fields.append(f)
                 continue
             self._sort_fields(f, "grouped")
@@ -204,7 +204,7 @@ class Record:
         Optionally you can pass in multiple fields.
         """
         for f in fields:
-            if len(self.fields) == 0 or not f.tag.isdigit():
+            if not self.fields or not f.tag.isdigit():
                 self.fields.append(f)
                 continue
             self._sort_fields(f, "ordered")
@@ -216,9 +216,8 @@ class Record:
         else:
             tag = int(field.tag)
 
-        i, last_tag = 0, 0
-        for selff in self.fields:
-            i += 1
+        last_tag: int = 0
+        for i, selff in enumerate(self.fields, 1):
             if not selff.tag.isdigit():
                 self.fields.insert(i - 1, field)
                 break
@@ -231,6 +230,7 @@ class Record:
             if last_tag > tag:
                 self.fields.insert(i - 1, field)
                 break
+
             if len(self.fields) == i:
                 self.fields.append(field)
                 break
@@ -270,7 +270,7 @@ class Record:
         If no tag is passed in to get_fields() a list of all the fields will be
         returned.
         """
-        if len(args) == 0:
+        if not args:
             return self.fields
 
         return [f for f in self.fields if f.tag in args]
@@ -366,7 +366,7 @@ class Record:
 
                 first_indicator = second_indicator = " "
                 subs[0] = subs[0].decode("ascii")
-                if len(subs[0]) == 0:
+                if not subs[0]:
                     logging.warning("missing indicators: %s", entry_data)
                     first_indicator = second_indicator = " "
                 elif len(subs[0]) == 1:
@@ -383,7 +383,7 @@ class Record:
 
                 for subfield in subs[1:]:
                     skip_bytes = 1
-                    if len(subfield) == 0:
+                    if not subfield:
                         continue
                     try:
                         code = subfield[0:1].decode("ascii")
