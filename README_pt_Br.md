@@ -33,11 +33,7 @@ Se você quiser baixar e instalar a versão mais recente, precisará do git:
 
 Você também vai precisar do [setuptools](https://pypi.python.org/pypi/setuptools#installation-instructions). Após ter a fonte e o setuptools, execute o pymarc test suite para garantirque as tudo está em ordem com a distribuição:
 
-    python setup.py test
-
-E então instale:
-
-    python setup.py install
+    pytest
 
 ### Leitura
 

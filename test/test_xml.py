@@ -108,10 +108,5 @@ class XmlTest(unittest.TestCase):
         )
 
 
-def suite():
-    test_suite = unittest.makeSuite(XmlTest, "test")
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

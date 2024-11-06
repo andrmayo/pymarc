@@ -1,0 +1,25 @@
+[project]
+name = "pymarc"
+version = "5.2.3"
+description = "Read, write and modify MARC bibliographic data"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+dependencies = []
+packages = ["pymarc"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "black>=23.3.0",
+    "flake8>=5.0.4",
+    "flake8-docstrings>=1.7.0",
+    "mypy>=1.4.1",
+    "wheel>=0.42.0",
+    "pytest>=7.4.4",
+    "hatch>=0.23.1",
+    "coverage>=7.2.7",
+]
