@@ -12,6 +12,8 @@ from typing import List, Optional, DefaultDict, NamedTuple, Iterator, Dict, Sequ
 from pymarc.constants import SUBFIELD_INDICATOR, END_OF_FIELD
 from pymarc.marc8 import marc8_to_unicode
 
+logger = logging.getLogger("pymarc")
+
 Subfield = NamedTuple("Subfield", [("code", str), ("value", str)])
 
 
@@ -467,7 +469,7 @@ class RawField(Field):
     def as_marc(self, encoding: Optional[str] = None):
         """Used during conversion of a field to raw MARC."""
         if encoding is not None:
-            logging.warning("Attempt to force a RawField into encoding %s", encoding)
+            logger.warning("Attempt to force a RawField into encoding %s", encoding)
         if self.control_field:
             return self.data + END_OF_FIELD.encode("ascii")  # type: ignore
         marc: bytes = self.indicator1.encode("ascii") + self.indicator2.encode("ascii")

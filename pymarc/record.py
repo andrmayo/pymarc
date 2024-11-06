@@ -37,6 +37,7 @@ from pymarc.leader import Leader
 from pymarc.marc8 import marc8_to_unicode
 
 isbn_regex: Pattern = re.compile(r"([0-9\-xX]+)")
+logger = logging.getLogger("pymarc")
 
 
 class Record:
@@ -367,14 +368,14 @@ class Record:
                 first_indicator = second_indicator = " "
                 subs[0] = subs[0].decode("ascii")
                 if len(subs[0]) == 0:
-                    logging.warning("missing indicators: %s", entry_data)
+                    logger.warning("missing indicators: %s", entry_data)
                     first_indicator = second_indicator = " "
                 elif len(subs[0]) == 1:
-                    logging.warning("only 1 indicator found: %s", entry_data)
+                    logger.warning("only 1 indicator found: %s", entry_data)
                     first_indicator = subs[0][0]
                     second_indicator = " "
                 elif len(subs[0]) > 2:
-                    logging.warning("more than 2 indicators found: %s", entry_data)
+                    logger.warning("more than 2 indicators found: %s", entry_data)
                     first_indicator = subs[0][0]
                     second_indicator = subs[0][1]
                 else:
