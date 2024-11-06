@@ -680,14 +680,5 @@ class XMLWriterTest(unittest.TestCase):
         )
 
 
-def suite():
-    json_suite = unittest.makeSuite(JSONWriterTest, "test")
-    marc_suite = unittest.makeSuite(MARCWriterTest, "test")
-    text_suite = unittest.makeSuite(TextWriterTest, "test")
-    xml_suite = unittest.makeSuite(XMLWriterTest, "test")
-    test_suite = unittest.TestSuite((json_suite, marc_suite, text_suite, xml_suite))
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

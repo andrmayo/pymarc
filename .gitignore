@@ -16,3 +16,5 @@ Pipfile.lock
 venv
 .coverage
 coverage.xml
+.venv
+uv.lock

@@ -55,10 +55,5 @@ class OrderedFieldsTest(unittest.TestCase):
         self.assertEqual(grouped, exp, "Fields are not grouped numerically")
 
 
-def suite():
-    test_suite = unittest.makeSuite(OrderedFieldsTest, "test")
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

@@ -49,10 +49,5 @@ class MARCUnicodeTest(unittest.TestCase):
             str(record)
 
 
-def suite():
-    test_suite = unittest.makeSuite(MARCUnicodeTest, "test")
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

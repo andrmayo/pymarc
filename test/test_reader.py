@@ -314,16 +314,5 @@ class MARCMakerReaderTest(unittest.TestCase, MARCReaderBaseTest):
                 )
 
 
-def suite():
-    file_suite = unittest.makeSuite(MARCReaderFileTest, "test")
-    string_suite = unittest.makeSuite(MARCReaderStringTest, "test")
-    permissive_file_suite = unittest.makeSuite(MARCReaderFilePermissiveTest, "test")
-    marcmaker_suite = unittest.makeSuite(MARCMakerReaderTest, "test")
-    test_suite = unittest.TestSuite(
-        (file_suite, string_suite, permissive_file_suite, marcmaker_suite)
-    )
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

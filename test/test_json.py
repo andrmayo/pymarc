@@ -153,10 +153,5 @@ class JsonParse(unittest.TestCase):
             )
 
 
-def suite():
-    test_suite = unittest.makeSuite(JsonTest, "test")
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()
