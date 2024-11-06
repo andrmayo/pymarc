@@ -395,7 +395,7 @@ And run type checking:
 If you want to build and publish a new version of pymarc on PyPI you can:
 
     hatch build
-    hatch release
+    hatch publish
 
 ## Support
 
