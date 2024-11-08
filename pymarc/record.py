@@ -364,7 +364,6 @@ class Record:
                 # find. This means missing indicators will be recorded as
                 # blank spaces, and any more than 2 are dropped on the floor.
 
-                first_indicator = second_indicator = " "
                 subs[0] = subs[0].decode("ascii")
                 if not subs[0]:
                     logging.warning("missing indicators: %s", entry_data)
