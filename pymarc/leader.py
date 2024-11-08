@@ -11,7 +11,7 @@ from pymarc.constants import LEADER_LEN
 from pymarc.exceptions import BadLeaderValue, RecordLeaderInvalid
 
 
-class Leader(object):
+class Leader:
     """Mutable leader.
 
     A class to manipulate a `Record`'s leader.
