@@ -404,10 +404,5 @@ class FieldTest(unittest.TestCase):
         )
 
 
-def suite():
-    test_suite = unittest.makeSuite(FieldTest, "test")
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

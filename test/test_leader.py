@@ -82,10 +82,5 @@ class LeaderTest(unittest.TestCase):
                 setattr(leader, field, value)
 
 
-def suite():
-    test_suite = unittest.makeSuite(LeaderTest, "test")
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

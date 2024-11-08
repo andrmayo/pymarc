@@ -778,10 +778,5 @@ class RecordTest(unittest.TestCase):
             self.assertEqual(map_marc8_data.as_marc(), record.as_marc())
 
 
-def suite():
-    test_suite = unittest.makeSuite(RecordTest, "test")
-    return test_suite
-
-
 if __name__ == "__main__":
     unittest.main()

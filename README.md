@@ -24,26 +24,13 @@ pull request.
 
 You can read pymarc documentation [here](https://pymarc.readthedocs.io/en/latest/).
 
-### Installation
+## Installation
 
 You'll probably just want to use pip to install pymarc:
 
     pip install pymarc
-
-If you'd like to download and install the latest source you'll need git:
-
-    git clone git://gitlab.com/pymarc/pymarc.git
-
-You'll also need [setuptools](https://pypi.python.org/pypi/setuptools#installation-instructions). Once you have the source and setuptools run the pymarc test
-suite to make sure things are in order with the distribution:
-
-    python setup.py test
-
-And then install:
-
-    python setup.py install
-
-### Reading
+    
+## Reading
 
 Most often you will have some MARC data and will want to extract data
 from it. Here's an example of reading a batch of records and printing out
@@ -110,7 +97,7 @@ MARC](http://www.loc.gov/marc/umb/) is a pretty good primer, and the [MARC 21
 Formats](http://www.loc.gov/marc/marcdocz.html) page at the Library of Congress 
 is a good reference once you understand the basics.
 
-### Writing
+## Writing
 
 *Note: As of v5.0.0 `Subfield` is used to create subfields. Prior to v5,
 subfields were constructed and accessed as a list of strings, e.g., `[code,
@@ -155,7 +142,7 @@ legacy_fields: list[str] = ['a', 'The pragmatic programmer : ',
 coded_fields: list[Subfield] = Field.convert_legacy_subfields(legacy_fields)
 ```
 
-### Updating
+## Updating
 
 Updating works the same way, you read it in, modify it, and then write it out
 again:
@@ -171,7 +158,7 @@ with open('file.dat', 'wb') as out:
 ```
 
 
-### JSON and XML
+## JSON and XML
 
 If you find yourself using MARC data a fair bit, and distributing it, you may
 make other developers a bit happier by using the JSON or XML serializations. The
@@ -379,8 +366,38 @@ print(records[0])
 =700  1\$aCharles, Ray,$d1930-$4prf
 ```
 
-Support
--------
+## Developing
+
+If you'd like to further develop pymarc you'll want to get the latest code:
+
+    git clone git://gitlab.com/pymarc/pymarc.git
+    cd pymarc
+    
+Create a virtual environment with [uv](https://docs.astral.sh/uv/) and activate it:
+
+    pip install uv
+    uv venv
+    uv sync
+    source .venv/bin/activate
+    
+Run the tests:
+
+    pytest
+    
+Run the lint tests:
+
+    flake8 .
+    
+And run type checking:
+
+    mypy --ignore-missing-imports .
+    
+If you want to build and publish a new version of pymarc on PyPI you can:
+
+    hatch build
+    hatch publish
+
+## Support
 
 The pymarc developers encourage you to join the [pymarc Google
 Group](http://groups.google.com/group/pymarc) if you need help.  Also, please
@@ -389,6 +406,6 @@ GitLab to submit feature requests or bug reports. If you've got an itch to
 scratch, please scratch it, and send merge requests on
 [GitLab](http://gitlab.com/pymarc/pymarc).
 
-If you start working with MARC you may feel like you need moral support
-in addition to technical support. The
-[#code4lib](ircs://irc.libera.chat/code4lib) channel on [Libera](https://libera.chat/) is a good place for both.
+If you start working with MARC you may feel like you need moral support in
+addition to technical support. The #python channel on [code4lib Slack]https://code4lib.org/slack/)
+is a good place to start.

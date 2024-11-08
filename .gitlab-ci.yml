@@ -3,15 +3,17 @@ stages:
   - tests
 
 default:
-  # default image for tests and linting, should be the minimum supported python version
-  image: python:3.7-slim
+  image: python:3.8-slim
 
 # linting is only done once with default image
 lint:
   stage: linting
   before_script:
-    - pip install -r requirements.dev.txt
+    - pip install uv
+    - uv venv
+    - uv sync
   script:
+    - source .venv/bin/activate
     - black --check --diff .
     - flake8 .
     - mypy --ignore-missing-imports .
@@ -20,8 +22,11 @@ lint:
 test-coverage:
   stage: tests
   before_script:
-    - pip install coverage
+    - pip install uv
+    - uv venv
+    - uv sync
   script:
+    - source .venv/bin/activate
     - coverage run -m unittest discover
     - coverage xml
     - coverage report
@@ -38,13 +43,16 @@ test-coverage:
     expire_in: 1 day
 
 # run tests on other supported python versions
-test-other-python-versions:
+test-python:
   stage: tests
   parallel:
     matrix:
-      # keep this list in sync with the "Programming Language" classifiers excluding
-      # the python version used in the default image
-      - PYTHON_VERSION: ['3.8', '3.9', '3.10', '3.11', '3.12']
+      - PYTHON_VERSION: ['3.9', '3.10', '3.11', '3.12', '3.13']
   image: python:${PYTHON_VERSION}-slim
+  before_script:
+    - pip install uv
+    - uv venv
+    - uv sync
   script:
-    - python -m unittest discover
+    - source .venv/bin/activate
+    - pytest

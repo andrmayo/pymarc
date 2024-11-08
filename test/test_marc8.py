@@ -7,7 +7,7 @@
 # file.
 
 import os
-from unittest import TestCase, makeSuite  # type: ignore
+import unittest
 
 
 from pymarc import (
@@ -22,7 +22,7 @@ from pymarc import (
 )
 
 
-class MARC8Test(TestCase):
+class MARC8Test(unittest.TestCase):
     def test_marc8_reader(self):
         with open("test/marc8.dat", "rb") as fh:
             reader = MARCReader(fh, to_unicode=False)
@@ -219,6 +219,5 @@ class MARC8Test(TestCase):
         )
 
 
-def suite():
-    test_suite = makeSuite(MARC8Test, "test")
-    return test_suite
+if __name__ == "__main__":
+    unittest.main()
