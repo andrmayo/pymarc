@@ -166,7 +166,10 @@ class Record:
 
             '245' in record
         """
-        return any(True for f in self.fields if f.tag == tag)
+        for f in self.fields:
+            if f.tag == tag:
+                return True
+        return False
 
     def __iter__(self):
         self.__pos = 0
