@@ -777,6 +777,23 @@ class RecordTest(unittest.TestCase):
             map_marc8_data = map_marc8_record(record)
             self.assertEqual(map_marc8_data.as_marc(), record.as_marc())
 
+    def test_fields_parameter(self):
+        record = Record(
+            fields=[
+                Field(
+                    tag="245",
+                    subfields=[Subfield(code="a", value="A title")],
+                ),
+                Field(
+                    tag="500",
+                    subfields=[Subfield(code="a", value="A comment")],
+                ),
+            ]
+        )
+
+        assert record["245"]["a"] == "A title"
+        assert record["500"]["a"] == "A comment"
+
 
 if __name__ == "__main__":
     unittest.main()
