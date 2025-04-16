@@ -373,29 +373,30 @@ If you'd like to further develop pymarc you'll want to get the latest code:
     git clone git://gitlab.com/pymarc/pymarc.git
     cd pymarc
     
-Create a virtual environment with [uv](https://docs.astral.sh/uv/) and activate it:
+Install [uv](https://docs.astral.sh/uv/), and run the tests:
 
-    pip install uv
-    uv venv
-    uv sync
-    source .venv/bin/activate
-    
-Run the tests:
-
-    pytest
+    uv run pytest
     
 Run the lint tests:
 
-    flake8 .
+    uv run ruff check .
+
+Reformat any code that needs it:
+
+    uv run ruff format .
     
 And run type checking:
 
-    mypy --ignore-missing-imports .
+    uv run mypy .
+
+If you want to update the dependencies:
+
+    uv lock --upgrade
     
 If you want to build and publish a new version of pymarc on PyPI you can:
 
-    hatch build
-    hatch publish
+    uv build
+    uv publish
 
 ## Support
 

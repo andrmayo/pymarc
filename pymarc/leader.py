@@ -5,6 +5,7 @@
 # file.
 
 """The pymarc.leader file."""
+
 from typing import Union
 
 from pymarc.constants import LEADER_LEN

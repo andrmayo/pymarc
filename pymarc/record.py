@@ -5,6 +5,7 @@
 # file.
 
 """Pymarc Record."""
+
 import json
 import logging
 import re
@@ -342,8 +343,7 @@ class Record:
             entry_length = int(entry[3:7])
             entry_offset = int(entry[7:12])
             entry_data = marc[
-                base_address
-                + entry_offset : base_address
+                base_address + entry_offset : base_address
                 + entry_offset
                 + entry_length
                 - 1
