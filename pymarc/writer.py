@@ -5,6 +5,7 @@
 # file.
 
 """Pymarc Writer."""
+
 import json
 import xml.etree.ElementTree as ET
 from typing import IO

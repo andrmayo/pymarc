@@ -5,6 +5,7 @@
 # file.
 
 """Leader tests."""
+
 import random
 import string
 import unittest

@@ -382,7 +382,7 @@ class FieldTest(unittest.TestCase):
         self.assertEqual(coded_val.code, "a")  # type: ignore
         self.assertEqual(coded_val.value, "Huckleberry Finn: ")  # type: ignore
 
-    def test_convert_legacy_subfields(self):
+    def test_convert_legacy_subfields(self) -> None:
         """Tests conversion between the legacy subfield format and the new Subfield format."""
         legacy_fields: list[str] = [
             "a",

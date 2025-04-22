@@ -3,33 +3,27 @@ stages:
   - tests
 
 default:
-  image: python:3.8-slim
+  image: python:3.13-slim
 
 # linting is only done once with default image
 lint:
   stage: linting
   before_script:
     - pip install uv
-    - uv venv
-    - uv sync
   script:
-    - source .venv/bin/activate
-    - black --check --diff .
-    - flake8 .
-    - mypy --ignore-missing-imports .
+    - uv run ruff check --diff .
+    - uv run ruff format --check --diff .
+    - uv run mypy .
 
 # run tests and measure coverage with the default python version
 test-coverage:
   stage: tests
   before_script:
     - pip install uv
-    - uv venv
-    - uv sync
   script:
-    - source .venv/bin/activate
-    - coverage run -m unittest discover
-    - coverage xml
-    - coverage report
+    - uv run coverage run -m unittest discover
+    - uv run coverage xml
+    - uv run coverage report
   # integrate coverage reports in GitLab 
   # see https://docs.gitlab.com/ee/ci/testing/test_coverage_visualization.html
   coverage: '/\d+\%\s*$/'
@@ -51,8 +45,5 @@ test-python:
   image: python:${PYTHON_VERSION}-slim
   before_script:
     - pip install uv
-    - uv venv
-    - uv sync
   script:
-    - source .venv/bin/activate
-    - pytest
+    - uv run pytest
