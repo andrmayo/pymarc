@@ -15,7 +15,7 @@ class MARCUnicodeTest(unittest.TestCase):
         self.field_count = 0
 
         def process_xml(record):
-            for field in record.get_fields():
+            for _ in record.get_fields():
                 self.field_count += 1
 
         pymarc.map_xml(process_xml, "test/utf8.xml")

@@ -11,7 +11,8 @@ import logging
 import re
 import unicodedata
 import warnings
-from typing import List, Optional, Dict, Tuple, Any, Pattern
+from re import Pattern
+from typing import Any, Optional
 
 from pymarc.constants import DIRECTORY_ENTRY_LEN, END_OF_RECORD, LEADER_LEN
 from pymarc.exceptions import (
@@ -29,10 +30,10 @@ from pymarc.field import (
     END_OF_FIELD,
     SUBFIELD_INDICATOR,
     Field,
+    Indicators,
     RawField,
     Subfield,
     map_marc8_field,
-    Indicators,
 )
 from pymarc.leader import Leader
 from pymarc.marc8 import marc8_to_unicode
@@ -84,7 +85,7 @@ class Record:
     def __init__(
         self,
         data: str = "",
-        fields: Optional[List[Field]] = None,
+        fields: Optional[list[Field]] = None,
         to_unicode: bool = True,
         force_utf8: bool = False,
         hide_utf8_warnings: bool = False,
@@ -94,7 +95,7 @@ class Record:
     ) -> None:
         """Initialize a Record."""
         self.leader: Any = Leader(leader[0:10] + "22" + leader[12:20] + "4500")
-        self.fields: List = list()
+        self.fields: list = []
         self.pos: int = 0
         self.force_utf8: bool = force_utf8
         self.to_unicode: bool = to_unicode
@@ -118,7 +119,7 @@ class Record:
         See :func:`Field.__str__() <pymarc.record.Field.__str__>` for more information.
         """
         # join is significantly faster than concatenation
-        text_list: List = [f"=LDR  {self.leader}"]
+        text_list: list = [f"=LDR  {self.leader}"]
         text_list.extend([str(field) for field in self.fields])
         text: str = "\n".join(text_list) + "\n"
         return text
@@ -154,7 +155,7 @@ class Record:
         if tag not in self:
             raise KeyError
 
-        fields: List[Field] = self.get_fields(tag)
+        fields: list[Field] = self.get_fields(tag)
         if not fields:
             raise KeyError
 
@@ -167,7 +168,8 @@ class Record:
 
             '245' in record
         """
-        for f in self.fields:
+        # This is the fastest implementation.
+        for f in self.fields:  # noqa: SIM110
             if f.tag == tag:
                 return True
         return False
@@ -216,20 +218,14 @@ class Record:
 
     def _sort_fields(self, field: Field, mode: str) -> None:
         """Sort fields by `mode`."""
-        if mode == "grouped":
-            tag = int(field.tag[0])
-        else:
-            tag = int(field.tag)
+        tag = int(field.tag[0]) if mode == "grouped" else int(field.tag)
 
         for i, selff in enumerate(self.fields, 1):
             if not selff.tag.isdigit():
                 self.fields.insert(i - 1, field)
                 break
 
-            if mode == "grouped":
-                last_tag = int(selff.tag[0])
-            else:
-                last_tag = int(selff.tag)
+            last_tag = int(selff.tag[0]) if mode == "grouped" else int(selff.tag)
 
             if last_tag > tag:
                 self.fields.insert(i - 1, field)
@@ -245,7 +241,7 @@ class Record:
             try:
                 self.fields.remove(f)
             except ValueError:
-                raise FieldNotFound
+                raise FieldNotFound from None
 
     def remove_fields(self, *tags) -> None:
         """Remove all the fields with the tags passed to the function.
@@ -257,7 +253,7 @@ class Record:
         """
         self.fields[:] = (field for field in self.fields if field.tag not in tags)
 
-    def get_fields(self, *args) -> List[Field]:
+    def get_fields(self, *args) -> list[Field]:
         """Return a list of all the fields in a record tags matching `args`.
 
         .. code-block:: python
@@ -279,7 +275,7 @@ class Record:
 
         return [f for f in self.fields if f.tag in args]
 
-    def get_linked_fields(self, field: Field) -> List[Field]:
+    def get_linked_fields(self, field: Field) -> list[Field]:
         """Given a field that is not an 880, retrieve a list of any linked 880 fields."""
         num = field.linkage_occurrence_num()
         fields = self.get_fields("880")
@@ -355,7 +351,7 @@ class Record:
                 else:
                     field = RawField(tag=entry_tag, data=entry_data)
             else:
-                subfields = list()
+                subfields = []
                 subs = entry_data.split(SUBFIELD_INDICATOR.encode("ascii"))
 
                 # The MARC spec requires there to be two indicators in a
@@ -390,7 +386,7 @@ class Record:
                     try:
                         code = subfield[0:1].decode("ascii")
                     except UnicodeDecodeError:
-                        warnings.warn(BadSubfieldCodeWarning())
+                        warnings.warn(BadSubfieldCodeWarning(), stacklevel=2)
                         code, skip_bytes = normalize_subfield_code(subfield)
                     data = subfield[skip_bytes:]
 
@@ -439,10 +435,7 @@ class Record:
         # each element of the directory includes the tag, the byte length of
         # the field and the offset from the base address where the field data
         # can be found
-        if self.leader[9] == "a" or self.force_utf8:
-            encoding = "utf-8"
-        else:
-            encoding = "iso8859-1"
+        encoding = "utf-8" if self.leader[9] == "a" or self.force_utf8 else "iso8859-1"
 
         for field in self.fields:
             if isinstance(field, RawField):
@@ -451,10 +444,10 @@ class Record:
                 field_data = field.as_marc(encoding=encoding)
             fields += field_data
             if field.tag.isdigit():
-                directory += ("%03d" % int(field.tag)).encode(encoding)
+                directory += f"{int(field.tag):03d}".encode(encoding)
             else:
-                directory += ("%03s" % field.tag).encode(encoding)
-            directory += ("%04d%05d" % (len(field_data), offset)).encode(encoding)
+                directory += f"{field.tag:>03}".encode(encoding)
+            directory += f"{len(field_data):04d}{offset:05d}".encode(encoding)
 
             offset += len(field_data)
 
@@ -480,9 +473,9 @@ class Record:
     # alias for backwards compatibility
     as_marc21 = as_marc
 
-    def as_dict(self) -> Dict[str, str]:
+    def as_dict(self) -> dict[str, str]:
         """Turn a MARC record into a dictionary, which is used for ``as_json``."""
-        record: Dict = {"leader": str(self.leader), "fields": []}
+        record: dict = {"leader": str(self.leader), "fields": []}
 
         for field in self:
             if field.control_field:
@@ -595,7 +588,7 @@ class Record:
         return field.format_field() if field else None
 
     @property
-    def series(self) -> List[Field]:
+    def series(self) -> list[Field]:
         """Returns series fields.
 
         Note: 490 supersedes the 440 series statement which was both
@@ -604,7 +597,7 @@ class Record:
         return self.get_fields("440", "490", "800", "810", "811", "830")
 
     @property
-    def subjects(self) -> List[Field]:
+    def subjects(self) -> list[Field]:
         """Returns subjects fields.
 
         Note: Fields 690-699 are considered "local" added entry fields but
@@ -618,7 +611,7 @@ class Record:
         # fmt: on
 
     @property
-    def addedentries(self) -> List[Field]:
+    def addedentries(self) -> list[Field]:
         """Returns Added entries fields.
 
         Note: Fields 790-799 are considered "local" added entry fields but
@@ -632,12 +625,12 @@ class Record:
         # fmt: on
 
     @property
-    def location(self) -> List[Field]:
+    def location(self) -> list[Field]:
         """Returns location field (852)."""
         return self.get_fields("852")
 
     @property
-    def notes(self) -> List[Field]:
+    def notes(self) -> list[Field]:
         """Return notes fields (all 5xx fields)."""
         # fmt: off
         return self.get_fields(
@@ -651,7 +644,7 @@ class Record:
         # fmt: on
 
     @property
-    def physicaldescription(self) -> List[Field]:
+    def physicaldescription(self) -> list[Field]:
         """Return physical description fields (300)."""
         return self.get_fields("300")
 
@@ -683,13 +676,13 @@ class Record:
 def map_marc8_record(record: Record) -> Record:
     """Map MARC-8 record."""
     record.fields = [map_marc8_field(field) for field in record.fields]
-    leader: List[str] = list(record.leader)
+    leader: list[str] = list(record.leader)
     leader[9] = "a"  # see http://www.loc.gov/marc/specifications/speccharucs.html
     record.leader = "".join(leader)
     return record
 
 
-def normalize_subfield_code(subfield) -> Tuple[Any, int]:
+def normalize_subfield_code(subfield) -> tuple[Any, int]:
     """Normalize subfield code."""
     skip_bytes: int = 1
     try:

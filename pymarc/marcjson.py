@@ -6,7 +6,7 @@
 
 """From JSON to MARC21."""
 
-from pymarc import Leader, Field, Indicators, Record, JSONReader
+from pymarc import Field, Indicators, JSONReader, Leader, Record
 
 
 class JSONHandler:

@@ -69,7 +69,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             "Copyright for this project is held by its many contributors, including:\n\n"
         )
         for contrib in contribs:
-            licensef.write("{}\n".format(contrib))
+            licensef.write(f"{contrib}\n")
 
 
 def apply_headers():
@@ -85,7 +85,7 @@ def apply_headers():
     for pyfile in list(path.glob("**/*.py")):
         if str(pyfile) == "docs/source/conf.py" or str(pyfile) == "test/__init__.py":
             continue
-        with open(pyfile, "r") as reader:
+        with open(pyfile) as reader:
             contents = reader.read()
             if contents.find(header) == -1:
                 if str(pyfile) == "test/__init__.py":

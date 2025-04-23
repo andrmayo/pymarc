@@ -11,10 +11,10 @@ from pymarc.exceptions import (
     MissingLinkedFields,
     RecordLeaderInvalid,
 )
-from pymarc.field import Field, Subfield, Indicators
+from pymarc.field import Field, Indicators, Subfield
+from pymarc.leader import Leader
 from pymarc.reader import MARCReader
 from pymarc.record import Record
-from pymarc.leader import Leader
 
 
 class RecordTest(unittest.TestCase):
@@ -791,8 +791,8 @@ class RecordTest(unittest.TestCase):
             ]
         )
 
-        assert record["245"]["a"] == "A title"
-        assert record["500"]["a"] == "A comment"
+        assert record["245"]["a"] == "A title"  # noqa: S101
+        assert record["500"]["a"] == "A comment"  # noqa: S101
 
 
 if __name__ == "__main__":

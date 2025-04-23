@@ -6,16 +6,15 @@
 
 """Pymarc Reader."""
 
+import json
 import os
 import sys
-import json
+from collections.abc import Iterator
+from io import BytesIO, IOBase, StringIO
+from typing import IO, BinaryIO, Callable, Union
 
-from io import IOBase, BytesIO, StringIO
-from typing import Callable, BinaryIO, IO, Iterator, Union, List
-
+from pymarc import Field, Indicators, Leader, Record, Subfield, exceptions
 from pymarc.constants import END_OF_RECORD
-from pymarc import Field, Indicators, Leader, Record, Subfield
-from pymarc import exceptions
 
 
 class Reader:
@@ -127,7 +126,7 @@ class MARCReader(Reader):
         Basically the argument you pass in should be raw MARC in transmission format or
         an object that responds to read().
         """
-        super(MARCReader, self).__init__()
+        super().__init__()
         self.to_unicode = to_unicode
         self.force_utf8 = force_utf8
         self.hide_utf8_warnings = hide_utf8_warnings
@@ -145,9 +144,10 @@ class MARCReader(Reader):
 
     def __next__(self):
         """Read and parse the next record."""
-        if self._current_exception:
-            if isinstance(self._current_exception, exceptions.FatalReaderError):
-                raise StopIteration
+        if self._current_exception and isinstance(
+            self._current_exception, exceptions.FatalReaderError
+        ):
+            raise StopIteration
 
         self._current_chunk = None
         self._current_exception = None
@@ -209,7 +209,7 @@ def map_records(f: Callable, *files: BytesIO) -> None:
 class JSONReader(Reader):
     """JSON Reader."""
 
-    file_handle: IO
+    file_handle: IOBase
 
     def __init__(
         self,
@@ -227,7 +227,7 @@ class JSONReader(Reader):
             self.file_handle = marc_target
         else:
             if isinstance(marc_target, str) and os.path.exists(marc_target):
-                self.file_handle = open(marc_target, "r")
+                self.file_handle = open(marc_target)  # noqa: SIM115
             else:
                 self.file_handle = StringIO(marc_target)  # type: ignore
         if stream:
@@ -295,12 +295,12 @@ class MARCMakerReader(Reader):
             file_handle = target
         else:
             if isinstance(target, str) and os.path.exists(target):
-                file_handle = open(target, mode="r", encoding=encoding)
+                file_handle = open(target, encoding=encoding)  # noqa: SIM115
             else:
                 file_handle = StringIO(target)  # type: ignore
         file_content = file_handle.read()
         file_handle.close()
-        self.records = [record for record in file_content.split("\n\n")]
+        self.records = list(file_content.split("\n\n"))
         self.iter = iter(self.records)
 
     def _parse_line(self, line: str) -> Union[Leader, Field]:
@@ -327,7 +327,7 @@ class MARCMakerReader(Reader):
             return Field(tag, data=data)
         indicators = Indicators(data[0], data[1])
         # the first $ is ignored to avoid an empty list item after the split
-        subfields: List[Subfield] = [
+        subfields: list[Subfield] = [
             Subfield(subfield[:1], subfield[1:]) for subfield in data[3:].split("$")
         ]
         return Field(tag, indicators=indicators, subfields=subfields)

@@ -8,14 +8,18 @@
 
 import logging
 from collections import defaultdict
-from typing import List, Optional, DefaultDict, NamedTuple, Iterator, Dict, Sequence
+from collections.abc import Iterator, Sequence
+from typing import NamedTuple, Optional
 
-from pymarc.constants import SUBFIELD_INDICATOR, END_OF_FIELD
+from pymarc.constants import END_OF_FIELD, SUBFIELD_INDICATOR
 from pymarc.marc8 import marc8_to_unicode
 
 logger = logging.getLogger("pymarc")
 
-Subfield = NamedTuple("Subfield", [("code", str), ("value", str)])
+
+class Subfield(NamedTuple):
+    code: str
+    value: str
 
 
 class Indicators(NamedTuple):
@@ -53,7 +57,7 @@ class Field:
         self,
         tag: str,
         indicators: Optional[Indicators] = None,
-        subfields: Optional[List[Subfield]] = None,
+        subfields: Optional[list[Subfield]] = None,
         data: Optional[str] = None,
     ):
         """Initialize a field `tag`."""
@@ -70,7 +74,7 @@ class Field:
                 """
             )
 
-        self.subfields: List[Subfield] = []
+        self.subfields: list[Subfield] = []
         self._indicators: Optional[Indicators] = None
         self.data: Optional[str] = None
         self.control_field: bool = False
@@ -114,7 +118,7 @@ class Field:
                 self._indicators = Indicators(*value)
 
     @classmethod
-    def convert_legacy_subfields(cls, subfields: List[str]) -> List[Subfield]:
+    def convert_legacy_subfields(cls, subfields: list[str]) -> list[Subfield]:
         """
         Converts older-style subfield lists into Subfield lists.
 
@@ -235,7 +239,8 @@ class Field:
         if self.control_field:
             return False
 
-        for s in self.subfields:
+        # Tested and this variant works faster than using any().
+        for s in self.subfields:  # noqa: SIM110
             if s.code == subfield:
                 return True
         return False
@@ -275,7 +280,7 @@ class Field:
             self.__pos += 1
             return subfield  # type: ignore
         except IndexError:
-            raise StopIteration
+            raise StopIteration from None
 
     def value(self) -> str:
         """Returns the field's subfields (or data in the case of control fields) as a string."""
@@ -284,7 +289,7 @@ class Field:
 
         return " ".join(subfield.value.strip() for subfield in self.subfields)
 
-    def get_subfields(self, *codes) -> List[str]:
+    def get_subfields(self, *codes) -> list[str]:
         """Get subfields matching `codes`.
 
         get_subfields() accepts one or more subfield codes and returns
@@ -324,6 +329,8 @@ class Field:
         else:
             self.subfields.insert(pos, insertable)
 
+        return None
+
     def delete_subfield(self, code: str) -> Optional[str]:
         """Deletes the first subfield with the specified 'code' and returns its value.
 
@@ -344,7 +351,7 @@ class Field:
 
         return whole_field.value
 
-    def subfields_as_dict(self) -> Dict[str, List]:
+    def subfields_as_dict(self) -> dict[str, list]:
         """Returns the subfields as a dictionary.
 
         Returns an empty dictionary if the field is a control field.
@@ -355,7 +362,7 @@ class Field:
         if self.control_field:
             return {}
 
-        subs: DefaultDict[str, List] = defaultdict(list)
+        subs: defaultdict[str, list] = defaultdict(list)
         for field in self.subfields:
             subs[field.code].append(field.value)
         return dict(subs)

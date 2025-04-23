@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This file is part of pymarc. It is subject to the license terms in the
 # LICENSE file found in the top-level directory of this distribution and at
 # https://opensource.org/licenses/BSD-2-Clause. pymarc may be copied, modified,
@@ -17,7 +15,7 @@ from pymarc import exceptions
 class MARCReaderBaseTest:
     def test_iterator(self):
         count = 0
-        for record in self.reader:
+        for _ in self.reader:
             count += 1
         self.assertEqual(count, 10, "found expected number of MARC21 records")
 
@@ -154,12 +152,12 @@ class MARCReaderFilePermissiveTest(unittest.TestCase):
                 self.assertIsNone(
                     record,
                     "expected parsing error with the following "
-                    "exception %r" % exception_type,
+                    f"exception {exception_type!r}",
                 )
                 self.assertTrue(
                     isinstance(self.reader.current_exception, exception_type),
-                    "expected %r exception, "
-                    "received: %r" % (exception_type, self.reader.current_exception),
+                    f"expected {exception_type!r} exception, "
+                    f"received: {self.reader.current_exception!r}",
                 )
 
 

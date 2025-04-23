@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This file is part of pymarc. It is subject to the license terms in the
 # LICENSE file found in the top-level directory of this distribution and at
 # https://opensource.org/licenses/BSD-2-Clause. pymarc may be copied, modified,
@@ -9,16 +7,15 @@
 import os
 import unittest
 
-
 from pymarc import (
     Field,
+    Indicators,
     MARCReader,
     MARCWriter,
     RawField,
     Record,
-    marc8_to_unicode,
     Subfield,
-    Indicators,
+    marc8_to_unicode,
 )
 
 

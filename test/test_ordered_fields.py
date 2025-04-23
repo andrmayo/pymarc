@@ -44,7 +44,7 @@ class OrderedFieldsTest(unittest.TestCase):
             record.add_grouped_field(field)
 
         # ensure all numeric fields are in grouped order
-        grouped = list()
+        grouped = []
         for field in record:
             if not field.tag.isdigit():
                 continue
