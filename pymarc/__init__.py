@@ -4,6 +4,8 @@
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
 
+# ruff: noqa
+
 from .record import *
 from .field import *
 from .exceptions import *

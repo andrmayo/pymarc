@@ -37,7 +37,7 @@ FIELDS = [
 def random_string(length):
     """Random string to fill a field."""
     letters = string.ascii_lowercase
-    return "".join(random.choice(letters) for i in range(length))
+    return "".join(random.choice(letters) for i in range(length))  # noqa: S311
 
 
 class LeaderTest(unittest.TestCase):
@@ -77,7 +77,7 @@ class LeaderTest(unittest.TestCase):
 
     def test_setters_errors(self):
         leader = Leader(LEADER)
-        for field, index, expected in FIELDS:
+        for field, _, expected in FIELDS:
             value = random_string(len(expected) + 1)
             with self.assertRaises(BadLeaderValue):
                 setattr(leader, field, value)

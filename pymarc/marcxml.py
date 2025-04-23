@@ -7,12 +7,11 @@
 """From XML to MARC21 and back again."""
 
 import unicodedata
+import xml.etree.ElementTree as ET
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler, feature_namespaces
-import xml.etree.ElementTree as ET
 
-from pymarc import Leader, Field, MARC8ToUnicode, Record, Indicators
-
+from pymarc import Field, Indicators, Leader, MARC8ToUnicode, Record
 
 XSI_NS = "http://www.w3.org/2001/XMLSchema-instance"
 MARC_XML_NS = "http://www.loc.gov/MARC21/slim"

@@ -14,7 +14,7 @@ import pymarc
 from pymarc import Record, WriteNeedsRecord
 
 
-class Writer(object):
+class Writer:
     """Base Writer object."""
 
     def __init__(self, file_handle: IO) -> None:
@@ -64,7 +64,7 @@ class JSONWriter(Writer):
 
     def __init__(self, file_handle: IO) -> None:
         """You need to pass in a text file like object."""
-        super(JSONWriter, self).__init__(file_handle)
+        super().__init__(file_handle)
         self.write_count = 0
         self.file_handle.write("[")
 
@@ -95,7 +95,7 @@ class MARCWriter(Writer):
 
         from pymarc import MARCWriter
 
-        # writing to a file
+        # writing to a fileIO
         writer = MARCWriter(open('file.dat','wb'))
         writer.write(record)
         writer.close()
@@ -117,7 +117,7 @@ class MARCWriter(Writer):
 
     def __init__(self, file_handle: IO) -> None:
         """You need to pass in a byte file like object."""
-        super(MARCWriter, self).__init__(file_handle)
+        super().__init__(file_handle)
 
     def write(self, record: Record) -> None:
         """Writes a record."""
@@ -151,7 +151,7 @@ class TextWriter(Writer):
 
     def __init__(self, file_handle: IO) -> None:
         """You need to pass in a text file like object."""
-        super(TextWriter, self).__init__(file_handle)
+        super().__init__(file_handle)
         self.write_count = 0
 
     def write(self, record: Record) -> None:
@@ -196,7 +196,7 @@ class XMLWriter(Writer):
 
     def __init__(self, file_handle: IO) -> None:
         """You need to pass in a binary file like object."""
-        super(XMLWriter, self).__init__(file_handle)
+        super().__init__(file_handle)
         self.file_handle.write(b'<?xml version="1.0" encoding="UTF-8"?>')
         self.file_handle.write(b'<collection xmlns="http://www.loc.gov/MARC21/slim">')
 

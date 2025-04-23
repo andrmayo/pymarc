@@ -3,10 +3,10 @@
 # https://opensource.org/licenses/BSD-2-Clause. pymarc may be copied, modified,
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
-import unittest
 import sys
+import unittest
 
-from pymarc.field import Field, Subfield, Indicators
+from pymarc.field import Field, Indicators, Subfield
 
 
 class FieldTest(unittest.TestCase):
@@ -54,7 +54,7 @@ class FieldTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = Field(
                 tag="245",
-                indicators=["a", "b", "c"],
+                indicators=["a", "b", "c"],  # noqa
                 subfields=[
                     Subfield(code="a", value="Huckleberry Finn: "),
                     Subfield(code="b", value="An American Odyssey"),
@@ -65,7 +65,7 @@ class FieldTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = Field(
                 tag="245",
-                indicators=("a", "b", "c"),
+                indicators=("a", "b", "c"),  # noqa
                 subfields=[
                     Subfield(code="a", value="Huckleberry Finn: "),
                     Subfield(code="b", value="An American Odyssey"),
@@ -75,7 +75,7 @@ class FieldTest(unittest.TestCase):
     def test_legacy_indicators_two_value_list(self):
         f = Field(
             tag="245",
-            indicators=["a", "b"],
+            indicators=["a", "b"],  # noqa
             subfields=[
                 Subfield(code="a", value="Huckleberry Finn: "),
                 Subfield(code="b", value="An American Odyssey"),
@@ -113,7 +113,7 @@ class FieldTest(unittest.TestCase):
             _ = Field(
                 tag="245",
                 indicators=Indicators("0", "1"),
-                subfields=old_style_subfields,
+                subfields=old_style_subfields,  # noqa
             )
 
     def test_string(self):

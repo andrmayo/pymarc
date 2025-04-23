@@ -116,9 +116,9 @@ class JsonTest(unittest.TestCase):
 class JsonParse(unittest.TestCase):
     def setUp(self):
         self._one_dat_fh = open("test/one.dat", "rb")
-        self._one_js_fh = open("test/one.json", "r")
-        self._batch_xml_fh = open("test/batch.xml", "r")
-        self._batch_js_fh = open("test/batch.json", "r")
+        self._one_js_fh = open("test/one.json")
+        self._batch_xml_fh = open("test/batch.xml")
+        self._batch_js_fh = open("test/batch.json")
 
         self.reader_dat = pymarc.MARCReader(self._one_dat_fh)
         self.parse_json = pymarc.parse_json_to_array(self._one_js_fh)

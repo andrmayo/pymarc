@@ -61,7 +61,7 @@ class Leader:
 
         leader[:4] == leader.length
         """
-        if isinstance(item, slice) or isinstance(item, int):
+        if isinstance(item, (slice, int)):
             return self.leader[item]
         return getattr(self, item)
 

@@ -4,11 +4,11 @@
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
 
+import json
 import os
 import textwrap
 import unittest
 from io import BytesIO, StringIO
-import json
 
 import pymarc
 

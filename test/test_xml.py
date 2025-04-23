@@ -4,10 +4,10 @@
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
 
-import pymarc
 import unittest
-
 from io import BytesIO
+
+import pymarc
 
 
 class XmlTest(unittest.TestCase):
