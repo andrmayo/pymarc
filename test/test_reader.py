@@ -33,7 +33,7 @@ class MARCReaderFileTest(unittest.TestCase, MARCReaderBaseTest):
     """Tests MARCReader which provides iterator based access to a MARC file."""
 
     def setUp(self):
-        self.reader = pymarc.MARCReader(open("test/test.dat", "rb"))
+        self.reader = pymarc.MARCReader(open("test/test.dat", "rb"))  # noqa: SIM115
 
     def tearDown(self):
         if self.reader:
@@ -55,12 +55,9 @@ class MARCReaderFileTest(unittest.TestCase, MARCReaderBaseTest):
         def f(r):
             self.count += 1
 
-        fh1 = open("test/test.dat", "rb")
-        fh2 = open("test/test.dat", "rb")
-        pymarc.map_records(f, fh1, fh2)
-        self.assertEqual(self.count, 20, "map_records appears to work")
-        fh1.close()
-        fh2.close()
+        with open("test/test.dat", "rb") as fh1, open("test/test.dat", "rb") as fh2:
+            pymarc.map_records(f, fh1, fh2)
+            self.assertEqual(self.count, 20, "map_records appears to work")
 
     def disabled_test_codecs(self):
         import codecs
@@ -96,9 +93,9 @@ class MARCReaderFileTest(unittest.TestCase, MARCReaderBaseTest):
 
 class MARCReaderStringTest(unittest.TestCase, MARCReaderBaseTest):
     def setUp(self):
-        fh = open("test/test.dat", "rb")
-        raw = fh.read()
-        fh.close()
+        with open("test/test.dat", "rb") as fh:
+            raw = fh.read()
+            fh.close()
 
         self.reader = pymarc.reader.MARCReader(raw)
 
@@ -109,7 +106,7 @@ class MARCReaderFilePermissiveTest(unittest.TestCase):
     """Tests MARCReader which provides iterator based access in a permissive way."""
 
     def setUp(self):
-        self.reader = pymarc.MARCReader(open("test/bad_records.mrc", "rb"))
+        self.reader = pymarc.MARCReader(open("test/bad_records.mrc", "rb"))  # noqa: SIM115
 
     def tearDown(self):
         if self.reader:
@@ -241,9 +238,8 @@ class MARCMakerReaderTest(unittest.TestCase, MARCReaderBaseTest):
 
     @classmethod
     def setUpClass(cls):
-        cls.records = [
-            str(record) for record in pymarc.MARCReader(open("test/test.dat", "rb"))
-        ]
+        with open("test/test.dat", "rb") as fh:
+            cls.records = [str(record) for record in pymarc.MARCReader(fh)]
 
     def setUp(self):
         self.reader = pymarc.MARCMakerReader("\n".join(self.records))

@@ -79,33 +79,31 @@ class XmlTest(unittest.TestCase):
             pos += 1
 
     def test_strict(self):
-        a = pymarc.parse_xml_to_array(open("test/batch.xml"), strict=True)
-        self.assertEqual(len(a), 2)
+        with open("test/batch.xml") as fh:
+            a = pymarc.parse_xml_to_array(fh, strict=True)
+            self.assertEqual(len(a), 2)
 
     def test_xml_namespaces(self):
         """Tests the 'namespace' parameter of the record_to_xml() method."""
         # get a test record
-        fh = open("test/test.dat", "rb")
-        record = next(pymarc.reader.MARCReader(fh))
-        # record_to_xml() with quiet set to False should generate errors
-        #   and write them to sys.stderr
-        xml = pymarc.record_to_xml(record, namespace=False)
-        # look for the xmlns in the written xml, should be -1
-        self.assertFalse(b'xmlns="http://www.loc.gov/MARC21/slim"' in xml)
+        with open("test/test.dat", "rb") as fh:
+            record = next(pymarc.reader.MARCReader(fh))
+            # record_to_xml() with quiet set to False should generate errors
+            #   and write them to sys.stderr
+            xml = pymarc.record_to_xml(record, namespace=False)
+            # look for the xmlns in the written xml, should be -1
+            self.assertFalse(b'xmlns="http://www.loc.gov/MARC21/slim"' in xml)
 
-        # record_to_xml() with quiet set to True should not generate errors
-        xml = pymarc.record_to_xml(record, namespace=True)
-        # look for the xmlns in the written xml, should be >= 0
-        self.assertTrue(b'xmlns="http://www.loc.gov/MARC21/slim"' in xml)
-
-        fh.close()
+            # record_to_xml() with quiet set to True should not generate errors
+            xml = pymarc.record_to_xml(record, namespace=True)
+            # look for the xmlns in the written xml, should be >= 0
+            self.assertTrue(b'xmlns="http://www.loc.gov/MARC21/slim"' in xml)
 
     def test_bad_tag(self):
-        self.assertRaises(
-            pymarc.exceptions.RecordLeaderInvalid,
-            pymarc.parse_xml_to_array,
-            open("test/bad_tag.xml"),
-        )
+        with open("test/bad_tag.xml") as fh:
+            self.assertRaises(
+                pymarc.exceptions.RecordLeaderInvalid, pymarc.parse_xml_to_array, fh
+            )
 
 
 if __name__ == "__main__":

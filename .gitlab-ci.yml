@@ -11,7 +11,7 @@ lint:
   before_script:
     - pip install uv
   script:
-    - uv run ruff check --diff .
+    - uv run ruff check .
     - uv run ruff format --check --diff .
     - uv run mypy .
 

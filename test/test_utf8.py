@@ -22,24 +22,25 @@ class MARCUnicodeTest(unittest.TestCase):
         self.assertEqual(self.field_count, 8)
 
     def test_copy_utf8(self):
-        writer = pymarc.MARCWriter(open("test/write-utf8-test.dat", "wb"))
-        new_record = pymarc.Record(to_unicode=True, force_utf8=True)
+        with open("test/write-utf8-test.dat", "wb") as fh:
+            writer = pymarc.MARCWriter(fh)
+            new_record = pymarc.Record(to_unicode=True, force_utf8=True)
 
-        def process_xml(record):
-            new_record.leader = record.leader
+            def process_xml(record):
+                new_record.leader = record.leader
 
-            for field in record.get_fields():
-                new_record.add_field(field)
+                for field in record.get_fields():
+                    new_record.add_field(field)
 
-        pymarc.map_xml(process_xml, "test/utf8.xml")
+            pymarc.map_xml(process_xml, "test/utf8.xml")
 
-        try:
-            writer.write(new_record)
-            writer.close()
+            try:
+                writer.write(new_record)
+                writer.close()
 
-        finally:
-            # remove it
-            os.remove("test/write-utf8-test.dat")
+            finally:
+                # remove it
+                os.remove("test/write-utf8-test.dat")
 
     def test_combining_diacritic(self):
         """Issue 74: raises UnicodeEncodeError on Python 2."""
