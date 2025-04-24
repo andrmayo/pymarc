@@ -29,7 +29,7 @@ def get_contributors():
     contribs = {}
 
     gitargs = shlex.split("git log --use-mailmap --format=short")
-    log = subprocess.run(gitargs, capture_output=True, encoding="utf-8")
+    log = subprocess.run(gitargs, capture_output=True, encoding="utf-8")  # noqa: S603
     for line in log.stdout.split("\n"):
         if line[0 : len("Author: ")] == "Author: ":
             contribs[line[len("Author: ") :]] = 1

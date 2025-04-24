@@ -5,6 +5,7 @@
 # file.
 
 import os
+import tempfile
 import unittest
 
 from pymarc import (
@@ -86,11 +87,11 @@ class MARC8Test(unittest.TestCase):
             self.assertIsInstance(r, Record)
             self.assertIsInstance(r["240"], RawField)
 
-        with open("/tmp/marc8.dat", "wb") as fh:
+        with tempfile.TemporaryFile() as fh:
             fh.write(r.as_marc())
 
-        # read back and verify it is the same as before
-        with open("/tmp/marc8.dat", "rb") as fh:
+            fh.seek(0)
+
             reader = MARCReader(fh, to_unicode=False)
             r = next(reader)
             self.assertEqual(type(r), Record)
@@ -100,21 +101,21 @@ class MARC8Test(unittest.TestCase):
             self.assertEqual(utitle, b"De la solitude \xe1a la communaut\xe2e.")
 
     def test_marc8_to_unicode(self):
-        marc8_file = open("test/test_marc8.txt", "rb")
-        utf8_file = open("test/test_utf8.txt", "rb")
-        count = 0
+        with (
+            open("test/test_marc8.txt", "rb") as marc8_file,
+            open("test/test_utf8.txt", "rb") as utf8_file,
+        ):
+            count = 0
 
-        while True:
-            marc8 = marc8_file.readline().strip(b"\n")
-            utf8 = utf8_file.readline().strip(b"\n")
-            if marc8 == b"" or utf8 == b"":
-                break
-            count += 1
-            self.assertEqual(marc8_to_unicode(marc8).encode("utf8"), utf8)
+            while True:
+                marc8 = marc8_file.readline().strip(b"\n")
+                utf8 = utf8_file.readline().strip(b"\n")
+                if marc8 == b"" or utf8 == b"":
+                    break
+                count += 1
+                self.assertEqual(marc8_to_unicode(marc8).encode("utf8"), utf8)
 
-        self.assertEqual(count, 1515)
-        marc8_file.close()
-        utf8_file.close()
+            self.assertEqual(count, 1515)
 
     def test_writing_unicode(self):
         record = Record()
@@ -122,14 +123,14 @@ class MARC8Test(unittest.TestCase):
             Field("245", Indicators("1", "0"), [Subfield(code="a", value=chr(0x1234))])
         )
         record.leader = "         a              "
-        writer = MARCWriter(open("test/foo", "wb"))
-        writer.write(record)
-        writer.close()
+        with open("test/foo", "wb") as fh:
+            writer = MARCWriter(fh)
+            writer.write(record)
 
-        reader = MARCReader(open("test/foo", "rb"), to_unicode=True)
-        record = next(reader)
-        self.assertEqual(record["245"]["a"], chr(0x1234))
-        reader.close()
+        with open("test/foo", "rb") as fh:
+            reader = MARCReader(fh, to_unicode=True)
+            record = next(reader)
+            self.assertEqual(record["245"]["a"], chr(0x1234))
 
         os.remove("test/foo")
 

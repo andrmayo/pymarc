@@ -272,23 +272,27 @@ class JSONWriterTest(unittest.TestCase):
 class MARCWriterTest(unittest.TestCase):
     def test_write(self):
         """Write a record off to a file."""
-        file_handle = open("test/writer-test.dat", "wb")
-        writer = pymarc.MARCWriter(file_handle)
-        record = pymarc.Record()
-        field = pymarc.Field(
-            "245", pymarc.Indicators("0", "0"), [pymarc.Subfield(code="a", value="foo")]
-        )
-        record.add_field(field)
-        writer.write(record)
-        writer.close()
-        self.assertTrue(
-            file_handle.closed, "The file handle should close when the writer closes"
-        )
+        with open("test/writer-test.dat", "wb") as file_handle:
+            writer = pymarc.MARCWriter(file_handle)
+            record = pymarc.Record()
+            field = pymarc.Field(
+                "245",
+                pymarc.Indicators("0", "0"),
+                [pymarc.Subfield(code="a", value="foo")],
+            )
+            record.add_field(field)
+            writer.write(record)
+            writer.close()
+            self.assertTrue(
+                file_handle.closed,
+                "The file handle should close when the writer closes",
+            )
 
         # read it back in
-        reader = pymarc.MARCReader(open("test/writer-test.dat", "rb"))
-        next(reader)
-        reader.close()
+        with open("test/writer-test.dat", "rb") as fh:
+            reader = pymarc.MARCReader(fh)
+            next(reader)
+            reader.close()
 
         # remove it
         os.remove("test/writer-test.dat")

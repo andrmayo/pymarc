@@ -31,6 +31,23 @@ class RecordTest(unittest.TestCase):
         record.add_field(field)
         self.assertTrue(field in record.fields, msg="found field")
 
+    def test_fields(self):
+        record = Record(
+            fields=[
+                Field(
+                    tag="245",
+                    indicators=Indicators("1", "0"),
+                    subfields=[
+                        Subfield(code="a", value="Python"),
+                        Subfield(code="c", value="Guido"),
+                    ],
+                ),
+                Field(tag="260", subfields=[Subfield(code="a", value="Amsterdam")]),
+            ]
+        )
+        self.assertTrue(record["245"]["a"] == "Python")
+        self.assertTrue(record["260"]["a"] == "Amsterdam")
+
     def test_remove_field(self):
         record = Record()
         field = Field(

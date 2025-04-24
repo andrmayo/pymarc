@@ -281,7 +281,7 @@ class FieldTest(unittest.TestCase):
             pass
         except Exception:
             e = sys.exc_info()[1]
-            self.fail("Unexpected exception thrown: %s" % e)
+            self.fail(f"Unexpected exception thrown: {e}")
         else:
             self.fail("KeyError not thrown")
 
@@ -293,15 +293,15 @@ class FieldTest(unittest.TestCase):
             pass
         except Exception:
             e = sys.exc_info()[1]
-            self.fail("Unexpected exception thrown: %s" % e)
+            self.fail(f"Unexpected exception thrown: {e}")
         else:
             self.fail("KeyError not thrown")
 
     def test_iter_over_controlfield(self):
         try:
-            [subfield for subfield in self.controlfield]
+            list(self.controlfield)
         except AttributeError as e:
-            self.fail("Error during iteration: %s" % e)
+            self.fail(f"Error during iteration: {e}")
 
     def test_setitem(self):
         self.field["a"] = "changed"

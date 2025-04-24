@@ -15,7 +15,7 @@ class JsonReaderTest(unittest.TestCase):
         with open("test/test.json") as fh:
             self.in_json = json.load(fh, strict=False)
 
-        self._js_fh = open("test/test.json")
+        self._js_fh = open("test/test.json")  # noqa: SIM115
         self.reader = pymarc.JSONReader(self._js_fh)
 
     def tearDown(self) -> None:
@@ -46,7 +46,7 @@ class JsonReaderTest(unittest.TestCase):
 
 class JsonTest(unittest.TestCase):
     def setUp(self):
-        self._test_fh = open("test/test.dat", "rb")
+        self._test_fh = open("test/test.dat", "rb")  # noqa: SIM115
         self.reader = pymarc.MARCReader(self._test_fh)
         self._record = pymarc.Record()
         field = pymarc.Field(
@@ -115,10 +115,10 @@ class JsonTest(unittest.TestCase):
 
 class JsonParse(unittest.TestCase):
     def setUp(self):
-        self._one_dat_fh = open("test/one.dat", "rb")
-        self._one_js_fh = open("test/one.json")
-        self._batch_xml_fh = open("test/batch.xml")
-        self._batch_js_fh = open("test/batch.json")
+        self._one_dat_fh = open("test/one.dat", "rb")  # noqa: SIM115
+        self._one_js_fh = open("test/one.json")  # noqa: SIM115
+        self._batch_xml_fh = open("test/batch.xml")  # noqa: SIM115
+        self._batch_js_fh = open("test/batch.json")  # noqa: SIM115
 
         self.reader_dat = pymarc.MARCReader(self._one_dat_fh)
         self.parse_json = pymarc.parse_json_to_array(self._one_js_fh)
