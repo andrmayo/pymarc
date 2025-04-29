@@ -60,3 +60,14 @@ lint.select = [
 
 [tool.mypy]
 exclude = '^dist'
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+skip_covered = true
+skip_empty = true
+show_missing = true
+
+[tool.coverage.xml]
+output = "coverage.xml"
