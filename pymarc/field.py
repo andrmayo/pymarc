@@ -194,14 +194,13 @@ class Field:
 
         Implements a non-raising getter for a subfield code that will
         return the value of the first subfield whose code is `key`. Returns
-        the default value if the field is a control field.
+        the default value if the field is a control field or if the code is
+        not present in the field.
         """
-        if self.control_field:
+        try:
+            return self[code]
+        except KeyError:
             return default
-
-        if code not in self:
-            return default
-        return self[code]
 
     def __getitem__(self, code: str) -> str:
         """Retrieve the first subfield with a given subfield code in a field.
@@ -446,8 +445,8 @@ class Field:
         If this is a control field, this is a NoOp.
         """
         if self.control_field:
-            self.indicators = None
-        self.indicators = self.indicators._replace(first=value)  # type: ignore
+            self._indicators = None
+        self._indicators = self._indicators._replace(first=value)  # type: ignore
 
     @property
     def indicator2(self) -> str:
@@ -455,7 +454,7 @@ class Field:
 
         Returns an empty string if this is  a control field.
         """
-        return self.indicators.second if self.indicators else ""
+        return self._indicators.second if self._indicators else ""
 
     @indicator2.setter
     def indicator2(self, value: str) -> None:
@@ -464,8 +463,8 @@ class Field:
         If this is a control field, this is a NoOp.
         """
         if self.control_field:
-            self.indicators = None
-        self.indicators = self.indicators._replace(second=value)  # type: ignore
+            self._indicators = None
+        self._indicators = self._indicators._replace(second=value)  # type: ignore
 
 
 class RawField(Field):
