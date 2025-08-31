@@ -6,11 +6,13 @@
 
 """Pymarc Record."""
 
+import csv
 import json
 import logging
 import re
 import unicodedata
 import warnings
+from io import StringIO
 from re import Pattern
 from typing import Any, Optional
 
@@ -472,6 +474,15 @@ class Record:
 
     # alias for backwards compatibility
     as_marc21 = as_marc
+
+    def as_csv(self, **kwargs) -> str:
+        """Serialize a record as CSV."""
+        output = StringIO()
+        dict_rec = self.as_dict()
+        writer = csv.DictWriter(output, fieldnames=list(dict_rec), **kwargs)
+        writer.writeheader()
+        writer.writerow(dict_rec)
+        return output.getvalue()
 
     def as_dict(self) -> dict[str, str]:
         """Turn a MARC record into a dictionary, which is used for ``as_json``."""
