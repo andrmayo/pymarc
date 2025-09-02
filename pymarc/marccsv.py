@@ -1,7 +1,5 @@
-from htmlutils import repl_nonASCII
-from reader import CSVReader
-
-from pymarc import Field, Indicators, Leader, Record, Subfield
+from pymarc import CSVReader, Field, Indicators, Leader, Record, Subfield
+from pymarc.htmlutils import repl_nonASCII
 
 
 class CSVHandler:

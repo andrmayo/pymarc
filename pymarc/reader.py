@@ -7,13 +7,14 @@
 """Pymarc Reader."""
 
 import csv
+import io
 import json
 import os
 import sys
-from collections.abc import Iterable, Iterator
-from io import BytesIO, IOBase, StringIO
+from collections.abc import Iterator
+from io import BytesIO, IOBase, StringIO, TextIOBase
 from pathlib import Path
-from typing import IO, BinaryIO, Callable, Union
+from typing import IO, BinaryIO, Callable, TextIO, Union
 
 from pymarc import Field, Indicators, Leader, Record, Subfield, exceptions
 from pymarc.constants import END_OF_RECORD
@@ -211,11 +212,11 @@ def map_records(f: Callable, *files: BytesIO) -> None:
 class CSVReader(Reader):
     """CSV Reader."""
 
-    file_handle: Iterable[str]  # required type for DictReader
+    file_handle: TextIOBase
 
     def __init__(
         self,
-        marc_target: Union[bytes, str, Path],
+        marc_target: Union[bytes, str, Path, TextIO],
         encoding: str = "utf-8",
         stream: bool = False,
     ) -> None:
@@ -223,12 +224,23 @@ class CSVReader(Reader):
         A csv.DictReader object is used to handle the records."""
         # streaming is not implemented.
         self.encoding = encoding
-        if (isinstance(marc_target, str) and os.path.exists(marc_target)) or (
-            isinstance(marc_target, Path) and marc_target.exists()
-        ):
-            self.file_handle = open(marc_target)  # noqa: SIM115
-        else:
-            self.file_handle = StringIO(marc_target)  # type: ignore
+        if isinstance(marc_target, io.TextIOBase):
+            if hasattr(marc_target, "mode") and "b" in getattr(marc_target, "mode", ""):
+                raise ValueError(
+                    "CSVReader requires a text-mode file handle, not binary."
+                )  # because csv.DictReader requires this
+            self.file_handle = marc_target
+        elif isinstance(marc_target, (str, Path)):
+            if (isinstance(marc_target, str) and os.path.exists(marc_target)) or (
+                isinstance(marc_target, Path) and marc_target.exists()
+            ):
+                self.file_handle = open(marc_target, encoding=encoding)  # noqa: SIM115
+            else:
+                self.file_handle = StringIO(marc_target)  # type: ignore
+        elif isinstance(marc_target, bytes):
+            # try to coerce bytes into text
+            self.file_handle = StringIO(marc_target.decode(encoding))
+
         if stream:
             sys.stderr.write(
                 "Streaming not yet implemented, your data will be loaded into memory\n"
