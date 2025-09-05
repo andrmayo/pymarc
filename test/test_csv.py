@@ -4,6 +4,7 @@
 # propagated, or distributed according to the terms contained in the LICENSE
 # file.
 
+import copy
 import csv
 import io
 import unittest
@@ -34,21 +35,37 @@ class CSVReaderTest(unittest.TestCase):
             len(self.in_csv), len(recs), "Incorrect number of records found"
         )
         for i, rec in enumerate(recs):
-            deserialized = csv.DictReader(rec.as_csv(), strict=False)
-            comp = self.in_csv[i]
+            deserialized = pymarc.parse_csv_to_dict(rec.as_csv())
+            comp = copy.deepcopy(self.in_csv[i])
+            # remove empty fields from csv dict
+            to_delete = []
+            for key in comp:
+                if not comp[key]:
+                    to_delete.append(key)
+            for key in to_delete:
+                del comp[key]
             self.assertEqual(comp, deserialized)
 
     def testOneRecord(self):
         """Tests case when in source csv there is only 1 record not wrapped in list."""
-        output = io.StringIO()
+        output = io.StringIO(newline="")
         fieldnames = list(self.in_csv[0])
         writer = csv.DictWriter(output, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerow(self.in_csv[0])
         data = output.getvalue()
-
-        reader = pymarc.CSVReader(data)
-        self.assertEqual([rec.as_dict() for rec in reader][0], self.in_csv[0])
+        # remove empty fields from csv dict
+        to_delete = []
+        comp = copy.deepcopy(self.in_csv[0])
+        for key in comp:
+            if not comp[key]:
+                to_delete.append(key)
+        for key in to_delete:
+            del comp[key]
+        reader = pymarc.CSVReader(data)  # type: ignore
+        self.assertEqual(
+            [pymarc.parse_csv_to_dict(rec.as_csv()) for rec in reader][0], comp
+        )
 
 
 # TODO: revise tests below
@@ -101,24 +118,18 @@ class csvTest(unittest.TestCase):
 
     def test_as_csv_simple(self):
         record = self._record.as_csv()
+        record = pymarc.parse_csv_to_dict(record)
 
-        self.assertTrue("leader" in record)
-        self.assertEqual(record["leader"], "          22        4500")
+        self.assertTrue("LDR" in record)
+        self.assertEqual(record["LDR"], "          22        4500")
 
-        self.assertTrue("fields" in record)
-        self.assertTrue("245" in record["fields"][0])
-        self.assertEqual(
-            record["fields"][0]["245"],
-            {
-                "subfields": [{"a": "Python"}, {"c": "Guido"}],
-                "ind2": "0",
-                "ind1": "1",
-            },
-        )
+        self.assertTrue("field_order" in record)
+        self.assertTrue("245" in record)
+        self.assertEqual(record["245"], "10$aPython$cGuido")
 
     def test_as_csv_multiple(self):
         for record in self.reader:
-            self.assertEqual(dict, record.as_csv().__class__)
+            self.assertEqual(dict, pymarc.parse_csv_to_dict(record.as_csv()).__class__)  # type: ignore
 
 
 class csvParse(unittest.TestCase):
@@ -140,6 +151,12 @@ class csvParse(unittest.TestCase):
         self._batch_csv_fh.close()
 
     def testRoundtrip(self):
+        # TODO: problem here is that current csv processing can't handle
+        # records where the same field tag is repeated
+        # CSVWriter should now have been fixed to write csv with distinct column names for identical marc tags
+        # Remaining issue is that, although reading and writing to CSV can now handle duplicate records,
+        # it does not preserve order
+
         recs = list(self.reader_dat)
         self.assertEqual(
             len(self.parse_csv), len(recs), "Incorrect number of records found"

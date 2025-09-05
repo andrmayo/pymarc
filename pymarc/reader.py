@@ -257,11 +257,13 @@ class CSVReader(Reader):
 
     def _make_record(self, line):
         rec = Record()
-        for field in line:
-            if isinstance(field, str) and (
-                field.upper() == "LDR" or field.lower() == "leader"
-            ):
-                rec.leader = Leader(line[field])
+        leader = line.get("LDR")
+        if not leader:
+            leader = line["leader"]
+        rec.leader = Leader(leader)
+        fields = line["field_order"].split()
+        for field in fields:
+            if not line.get(field):
                 continue
             line[field] = line[field].replace(chr(31), "$")
             if "$" in line[field][:3]:
@@ -270,6 +272,11 @@ class CSVReader(Reader):
                 indicators = list(indicators)[:2]
             else:
                 indicators, field_text = (None, line[field])
+            # deal with duplicate tags that have been written to CSV
+            # by appending '_<#>'
+            tag = field
+            if "_" in tag:
+                tag = tag[: tag.index("_")]
             if indicators:
                 subfields = (
                     [Subfield(code=s[0], value=s[1:]) for s in field_text.split("$")]
@@ -277,13 +284,13 @@ class CSVReader(Reader):
                     else []
                 )
                 field = Field(
-                    tag=field,
+                    tag=tag,
                     indicators=Indicators(*indicators),
                     subfields=subfields,
                 )
             else:
                 field = Field(
-                    tag=field,
+                    tag=tag,
                     data=field_text,
                 )
             rec.add_field(field)

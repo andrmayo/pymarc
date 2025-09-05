@@ -1,3 +1,6 @@
+from csv import DictReader
+from io import StringIO
+
 from pymarc import CSVReader, Field, Indicators, Leader, Record, Subfield
 from pymarc.htmlutils import repl_nonASCII
 
@@ -16,11 +19,14 @@ class CSVHandler:
     def element(self, element_dict):
         """Convert CSV `element_dict` to pymarc fields."""
         self._record = Record()
-        for field in element_dict:
-            if isinstance(field, str) and (
-                field.upper() == "LDR" or field.lower() == "leader"
-            ):
-                self._record.leader = Leader(element_dict[field])
+        # ensures fields are added to record in original order
+        leader = element_dict.get("LDR")
+        if not leader:
+            leader = element_dict["leader"]
+        self._record.leader = Leader(leader)
+        fields = element_dict["field_order"].split()
+        for field in fields:
+            if not element_dict.get(field):
                 continue
             element_dict[field] = element_dict[field].replace(chr(31), "$")
             if "$" in element_dict[field][:3]:
@@ -29,6 +35,10 @@ class CSVHandler:
                 indicators = list(indicators)[:2]
             else:
                 indicators, field_text = (None, element_dict[field])
+            # deal with duplicate field tags
+            tag = field
+            if "_" in tag:
+                tag = tag[: tag.index("_")]
             if indicators:
                 subfields = (
                     [Subfield(code=s[0], value=s[1:]) for s in field_text.split("$")]
@@ -36,13 +46,13 @@ class CSVHandler:
                     else []
                 )
                 field = Field(
-                    tag=field,
+                    tag=tag,
                     indicators=Indicators(*indicators),
                     subfields=subfields,
                 )
             else:
                 field = Field(
-                    tag=field,
+                    tag=tag,
                     data=field_text,
                 )
             self._record.add_field(field)
@@ -76,3 +86,10 @@ def parse_csv_to_array(csv_file):
     csv_reader = CSVReader(csv_file)
     handler = CSVHandler()
     return handler.elements(csv_reader.records)
+
+
+def parse_csv_to_dict(csv_string: str) -> dict:
+    """Converts record serialized as CSV string to dict."""
+    str_input = StringIO(csv_string, newline="")
+    csv_dict = list(DictReader(str_input))[0]
+    return csv_dict

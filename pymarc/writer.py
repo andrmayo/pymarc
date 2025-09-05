@@ -10,7 +10,7 @@ import csv
 import json
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable
-from typing import IO
+from typing import IO, Union
 from warnings import warn
 
 import pymarc
@@ -45,6 +45,12 @@ class CSVWriter(Writer):
 
     IMPORTANT: You must close a CSVWriter,
     otherwise you will not get valid CSV.
+    Also, the CSVWriter will impose the same order of fields on all records being processed.
+    By default, this is sorted by tag in increasing order, but pass
+    `sort_tags=False` to use the order in which the CSVWriter encounters tags with
+    `write_all`, or else `sort_tags=False` with `add_tags` to explicitly control the order.
+    Because the same order is imposed on all records in the CSV, records written to CSV
+    and then back to MARC may not be identical to the original records.
 
     Simple usage::
 
@@ -68,14 +74,14 @@ class CSVWriter(Writer):
         string = StringIO()
         writer = CSVWriter(string)
         writer.write(records)
-        writer.close(close_fh=False)  # Important!
+        writer.close(close_fh=False)  # Im6portant!
         print(string)
     """
 
     def __init__(self, file_handle: IO) -> None:
         super().__init__(file_handle)
         self.write_count = 0
-        self.marc_tags: set = {"LDR"}
+        self.marc_tags: list = ["LDR"]
         self.csv_dict_writer = None
 
     def write(self, record):
@@ -83,13 +89,24 @@ class CSVWriter(Writer):
         Note that for writing single records to a CSV file, if record contains
         a tag that hasn't been defined (explicitly with `CSVWriter.add_tags`
         or implicitly with `write_all`), the corresponding field will simply be skipped.
-        So `CSVWriter.add_tags` or `CSVWriter.write_all` should always be called beforehand."""
+        This applies to duplicate tags as well: to process multiple fields with the
+        same tag, e.g. two fields with tag 630, `self.marc_tags` must contain
+        '630' and '630_2', if three fields, '630_3', etc.
+        So `CSVWriter.add_tags` or `CSVWriter.write_all` should always be called beforehand.
+        It is probably best always to use `CSVWriter.write_all`."""
         Writer.write(self, record)
         leader = record.leader.leader
         csv_record = {}
         csv_record["LDR"] = leader
+        tag_counts = {}
+        field_order = []
         for marc_field in record.get_fields():
-            if marc_field.tag not in self.marc_tags:
+            field_order.append(marc_field)
+            tag_counts[marc_field.tag] = tag_counts.get(marc_field.tag, 0) + 1
+            cur_tag = marc_field.tag
+            if tag_counts[marc_field.tag] > 1:
+                cur_tag = f"{marc_field.tag}_{tag_counts[marc_field.tag]}"
+            if cur_tag not in self.marc_tags:
                 print(f"skipping marc tag: {marc_field.tag}")
                 continue
             indicator1 = marc_field.indicator1 if marc_field.indicator1 != " " else "\\"
@@ -99,16 +116,18 @@ class CSVWriter(Writer):
             if not indicator2:
                 indicator2 = "\\"
             if marc_field.subfields:
-                csv_record[marc_field.tag] = (
+                csv_record[cur_tag] = (
                     f"{indicator1}{indicator2}{''.join([f'${s.code}{s.value}' for s in marc_field.subfields])}"
                 )
             else:
                 csv_record[marc_field.tag] = marc_field.data
+        csv_record["field_order"] = " ".join(field_order)
 
         if not self.csv_dict_writer:
+            self.marc_tags = sorted(self.marc_tags)
             self.csv_dict_writer = csv.DictWriter(
                 self.file_handle,  # type: ignore
-                sorted(self.marc_tags),
+                self.marc_tags,
             )
             self.csv_dict_writer.writeheader()
 
@@ -118,17 +137,19 @@ class CSVWriter(Writer):
 
         self.csv_dict_writer.writerow(csv_record)
 
-    def add_tags(self, tags: Iterable) -> set:
+    def add_tags(self, tags: Iterable) -> list:
         """Add CSV columns for fields in marc records.
         Only necessary if calling `CSVWriter.write`
         without previously calling `CSVWriter.write_all`."""
-        self.marc_tags.update(tags)
+        self.marc_tags.extend(tags)
         return self.marc_tags
 
-    def write_all(self, records: list) -> None:
+    def write_all(self, records: Union[Record, list]) -> None:
         """Writes records.
         Infers the columns for CSV from tags in records,
         so there's no need to call `CSVWriter.add_tags`."""
+        if not isinstance(records, list):
+            records = [records]
         csv_records = []
         for record in records:
             Writer.write(self, record)
@@ -136,9 +157,16 @@ class CSVWriter(Writer):
             if record:
                 leader = record.leader.leader
                 csv_record["LDR"] = leader
+                tag_counts = {}
+                csv_fields = []
                 for marc_field in record.get_fields():
-                    if marc_field.tag not in self.marc_tags:
-                        self.marc_tags.add(marc_field.tag)
+                    cur_tag = marc_field.tag
+                    tag_counts[cur_tag] = tag_counts.get(cur_tag, 0) + 1
+                    if tag_counts[cur_tag] > 1:
+                        cur_tag = f"{cur_tag}_{tag_counts[cur_tag]}"
+                    if cur_tag not in self.marc_tags:
+                        self.marc_tags.append(cur_tag)
+                    csv_fields.append(cur_tag)
                     # deal with indicators
                     indicator1 = (
                         marc_field.indicator1 if marc_field.indicator1 != " " else "\\"
@@ -153,19 +181,21 @@ class CSVWriter(Writer):
                     # note that some fields may have no subfields (as with control fields).
                     # in this case, marc_field.subfields returns and empty list.
                     if marc_field.subfields:
-                        csv_record[marc_field.tag] = (
+                        csv_record[cur_tag] = (
                             f"{indicator1}{indicator2}{''.join([f'${s.code}{s.value}' for s in marc_field.subfields])}"
                         )
                     # handle field without subfields. These should be control fields.
                     else:
-                        csv_record[marc_field.tag] = marc_field.data
+                        csv_record[cur_tag] = marc_field.data
+                csv_record["field_order"] = " ".join(csv_fields)
 
                 csv_records.append(csv_record)
-
         if not self.csv_dict_writer:
+            self.marc_tags = sorted(self.marc_tags)
+            csv_headings = self.marc_tags + ["field_order"]
             self.csv_dict_writer = csv.DictWriter(
                 self.file_handle,  # type: ignore
-                sorted(self.marc_tags),
+                csv_headings,
             )
             self.csv_dict_writer.writeheader()
 
