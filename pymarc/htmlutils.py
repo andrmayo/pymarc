@@ -3,7 +3,7 @@ from typing import Optional
 from unicodedata import normalize
 
 
-def html_diacr(char) -> Optional[str]:
+def decompose_diacritics_html(char) -> Optional[str]:
     """Function for detecting if a unicode char has or is a diacritic,
     and returning decomposed html representation.
     This should work for standard unicode Latin, Greek, and Cyrillic diacritics."""
@@ -59,7 +59,7 @@ def html_diacr(char) -> Optional[str]:
     return "".join(decomp_buffer)
 
 
-def repl_nonASCII(text):
+def html_escape_unicode(text) -> str:
     """Function to replace non-ASCII characters with their html representations.
     Entity names are preferred to codepoints. This handles Greek diacritics specially."""
     if not isinstance(text, str):
@@ -69,7 +69,7 @@ def repl_nonASCII(text):
         if char.isascii():
             buffer.append(char)
             continue
-        diacr = html_diacr(char)
+        diacr = decompose_diacritics_html(char)
         if diacr:
             buffer.append(diacr)
             continue

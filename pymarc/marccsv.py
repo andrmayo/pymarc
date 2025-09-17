@@ -2,7 +2,6 @@ from csv import DictReader
 from io import StringIO
 
 from pymarc import CSVReader, Field, Indicators, Leader, Record, Subfield
-from pymarc.htmlutils import repl_nonASCII
 
 
 class CSVHandler:
@@ -73,12 +72,6 @@ class CSVHandler:
     def get_record(self, index: int) -> Record:
         """Takes in an index integer and returns relevant line of csv as Record object"""
         return self.records[index]
-
-    def html_ent(self) -> None:
-        """Converts all non-ASCII utf-8 characters to their ASCII-compatible entity names.
-        Applied in-place to self.records."""
-        for i, rec in enumerate(self.records):
-            self.records[i] = repl_nonASCII(rec)
 
 
 def parse_csv_to_array(csv_file):

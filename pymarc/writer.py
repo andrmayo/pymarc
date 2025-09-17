@@ -14,20 +14,38 @@ from typing import IO, Union
 from warnings import warn
 
 import pymarc
-from pymarc import Record, WriteNeedsRecord
+from pymarc import Record, Subfield, WriteNeedsRecord
+from pymarc.htmlutils import html_escape_unicode
 
 
 class Writer:
     """Base Writer object."""
 
-    def __init__(self, file_handle: IO) -> None:
+    def __init__(self, file_handle: IO, html_entities=False) -> None:
         """Init."""
         self.file_handle = file_handle
+        # set to True to convert non-ASCII characters to their html representations
+        # WARNING: if True, writing mutates the records passed to the Writer
+        self.html_entities = html_entities
 
     def write(self, record: Record) -> None:
         """Write."""
         if not isinstance(record, Record):
             raise WriteNeedsRecord
+
+        # this mutates the contents of any marc records passed to the Writer
+        if self.html_entities:
+            for marc_field in record.get_fields():
+                if marc_field.subfields:
+                    marc_field.subfields = [
+                        Subfield(
+                            code=s.code,
+                            value=html_escape_unicode(s.value),
+                        )
+                        for s in marc_field.subfields
+                    ]
+                else:
+                    marc_field.data = html_escape_unicode(marc_field.data)
 
     def close(self, close_fh: bool = True) -> None:
         """Closes the writer.
@@ -78,13 +96,13 @@ class CSVWriter(Writer):
         print(string)
     """
 
-    def __init__(self, file_handle: IO) -> None:
-        super().__init__(file_handle)
+    def __init__(self, file_handle: IO, html_entities=False) -> None:
+        super().__init__(file_handle, html_entities)
         self.write_count = 0
         self.marc_tags: list = ["LDR"]
         self.csv_dict_writer = None
 
-    def write(self, record):
+    def write(self, record: Record):
         """Writes record.
         Note that for writing single records to a CSV file, if record contains
         a tag that hasn't been defined (explicitly with `CSVWriter.add_tags`
@@ -101,7 +119,6 @@ class CSVWriter(Writer):
         tag_counts = {}
         field_order = []
         for marc_field in record.get_fields():
-            field_order.append(marc_field)
             tag_counts[marc_field.tag] = tag_counts.get(marc_field.tag, 0) + 1
             cur_tag = marc_field.tag
             if tag_counts[marc_field.tag] > 1:
@@ -109,6 +126,7 @@ class CSVWriter(Writer):
             if cur_tag not in self.marc_tags:
                 print(f"skipping marc tag: {marc_field.tag}")
                 continue
+            field_order.append(cur_tag)
             indicator1 = marc_field.indicator1 if marc_field.indicator1 != " " else "\\"
             indicator2 = marc_field.indicator2 if marc_field.indicator2 != " " else "\\"
             if not indicator1:
@@ -141,7 +159,16 @@ class CSVWriter(Writer):
         """Add CSV columns for fields in marc records.
         Only necessary if calling `CSVWriter.write`
         without previously calling `CSVWriter.write_all`."""
-        self.marc_tags.extend(tags)
+        tag_counts = {}
+
+        def process_duplicate_tags(tag):
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+            cur_tag = tag
+            if tag_counts[tag] > 1:
+                cur_tag = f"{tag}_{tag_counts[tag]}"
+            return cur_tag
+
+        self.marc_tags.extend([process_duplicate_tags(tag) for tag in tags])
         return self.marc_tags
 
     def write_all(self, records: Union[Record, list]) -> None:
@@ -235,9 +262,9 @@ class JSONWriter(Writer):
         print(string)
     """
 
-    def __init__(self, file_handle: IO) -> None:
+    def __init__(self, file_handle: IO, html_entities=False) -> None:
         """You need to pass in a text file like object."""
-        super().__init__(file_handle)
+        super().__init__(file_handle, html_entities)
         self.write_count = 0
         self.file_handle.write("[")
 
@@ -246,7 +273,8 @@ class JSONWriter(Writer):
         Writer.write(self, record)
         if self.write_count > 0:
             self.file_handle.write(",")
-        json.dump(record.as_dict(), self.file_handle, separators=(",", ":"))
+        as_dict = record.as_dict()
+        json.dump(as_dict, self.file_handle, separators=(",", ":"))
         self.write_count += 1
 
     def close(self, close_fh: bool = True) -> None:
@@ -288,9 +316,9 @@ class MARCWriter(Writer):
         writer.close(close_fh=False)
     """
 
-    def __init__(self, file_handle: IO) -> None:
+    def __init__(self, file_handle: IO, html_entities=False) -> None:
         """You need to pass in a byte file like object."""
-        super().__init__(file_handle)
+        super().__init__(file_handle, html_entities)
 
     def write(self, record: Record) -> None:
         """Writes a record."""
@@ -322,9 +350,9 @@ class TextWriter(Writer):
         print(string)
     """
 
-    def __init__(self, file_handle: IO) -> None:
+    def __init__(self, file_handle: IO, html_entities=False) -> None:
         """You need to pass in a text file like object."""
-        super().__init__(file_handle)
+        super().__init__(file_handle, html_entities)
         self.write_count = 0
 
     def write(self, record: Record) -> None:
@@ -367,9 +395,9 @@ class XMLWriter(Writer):
         writer.close(close_fh=False)  # Important!
     """
 
-    def __init__(self, file_handle: IO) -> None:
+    def __init__(self, file_handle: IO, html_entities=False) -> None:
         """You need to pass in a binary file like object."""
-        super().__init__(file_handle)
+        super().__init__(file_handle, html_entities)
         self.file_handle.write(b'<?xml version="1.0" encoding="UTF-8"?>')
         self.file_handle.write(b'<collection xmlns="http://www.loc.gov/MARC21/slim">')
 
