@@ -7,6 +7,7 @@
 """The pymarc field file."""
 
 import logging
+import typing
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
 from typing import NamedTuple, Optional
@@ -189,7 +190,13 @@ class Field:
 
             return f"={self.tag}  {''.join(_ind)}{''.join(_subf)}"
 
-    def get(self, code: str, default=None):
+    @typing.overload
+    def get(self, code: str, default: str) -> str: ...
+
+    @typing.overload
+    def get(self, code: str, default: None = None) -> Optional[str]: ...
+
+    def get(self, code: str, default: Optional[str] = None) -> Optional[str]:
         """A dict-like get method with a default value.
 
         Implements a non-raising getter for a subfield code that will
